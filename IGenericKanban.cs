@@ -26,17 +26,17 @@ namespace GenericKanban
         [DispId(3)]
         void ClearColumns();
 
-        /// <summary>Sets the background colour of a column header. hexColor e.g. #3498DB</summary>
+        /// <summary>Sets the background colour of a column header.</summary>
         [DispId(4)]
-        void SetColumnHeaderColor(string columnId, string hexColor);
+        void SetColumnHeaderColor(string columnId, int color);
 
         /// <summary>Sets the text colour of a column header.</summary>
         [DispId(5)]
-        void SetColumnHeaderTextColor(string columnId, string hexColor);
+        void SetColumnHeaderTextColor(string columnId, int color);
 
         /// <summary>Sets the background colour of the column body area.</summary>
         [DispId(6)]
-        void SetColumnBodyColor(string columnId, string hexColor);
+        void SetColumnBodyColor(string columnId, int color);
 
         // â”€â”€ Card Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -60,15 +60,15 @@ namespace GenericKanban
 
         /// <summary>Sets the background colour of a card.</summary>
         [DispId(11)]
-        void SetCardBackgroundColor(string cardId, string hexColor);
+        void SetCardBackgroundColor(string cardId, int color);
 
         /// <summary>Sets the text colour of a card.</summary>
         [DispId(12)]
-        void SetCardTextColor(string cardId, string hexColor);
+        void SetCardTextColor(string cardId, int color);
 
         /// <summary>Sets the border colour of a card.</summary>
         [DispId(13)]
-        void SetCardBorderColor(string cardId, string hexColor);
+        void SetCardBorderColor(string cardId, int color);
 
         /// <summary>Updates the title text displayed on an existing card.</summary>
         [DispId(14)]
@@ -82,7 +82,7 @@ namespace GenericKanban
 
         /// <summary>Sets the background colour of the entire board.</summary>
         [DispId(16)]
-        void SetBoardBackgroundColor(string hexColor);
+        void SetBoardBackgroundColor(int color);
 
         /// <summary>Sets the pixel width used for every column (default 260).</summary>
         [DispId(17)]
@@ -90,9 +90,9 @@ namespace GenericKanban
 
         // â”€â”€ Optional Card Metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-        /// <summary>Sets a coloured tag/badge on a card. Pass empty strings to remove.</summary>
+        /// <summary>Sets a coloured tag/badge on a card. Pass empty label to remove. Pass -1 for color to use default.</summary>
         [DispId(18)]
-        void SetCardTag(string cardId, string label, string hexColor);
+        void SetCardTag(string cardId, string label, int color);
 
         /// <summary>Sets the assignee name shown at the bottom of a card. Pass empty to remove.</summary>
         [DispId(19)]
@@ -114,13 +114,13 @@ namespace GenericKanban
         [DispId(23)]
         void SetReadOnly(int readOnly);
 
-        /// <summary>Sets a coloured left status bar on a card. Pass a label (e.g. "Active") and hex colour. Pass empty strings to remove.</summary>
+        /// <summary>Sets a coloured left status bar on a card. Pass empty label to remove. Pass -1 for color to hide.</summary>
         [DispId(24)]
-        void SetCardStatusBar(string cardId, string label, string hexColor);
+        void SetCardStatusBar(string cardId, string label, int color);
 
-        /// <summary>Sets a title bar across the top of the board. Pass empty title to hide. hexBg defaults to #1a1a1a, hexText to #ffffff.</summary>
+        /// <summary>Sets a title bar across the top of the board. Pass empty title to hide.</summary>
         [DispId(25)]
-        void SetBoardTitle(string title, string hexBg, string hexText);
+        void SetBoardTitle(string title, int colorBg, int colorText);
 
         // â”€â”€ Context Menu â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -204,10 +204,10 @@ namespace GenericKanban
 
         /// <summary>
         /// Adds a selectable item to a filter group.
-        /// Pass hexColor for a colour dot (e.g. "#E74C3C") or empty string for none.
+        /// Pass a color int for a colour dot, or -1 for none.
         /// </summary>
         [DispId(37)]
-        void AddFilterItem(string groupId, string itemId, string label, string hexColor);
+        void AddFilterItem(string groupId, string itemId, string label, int color);
 
         /// <summary>
         /// Tags a card with a filter value for a given group.

@@ -206,6 +206,9 @@ namespace GenericKanban
         // JSON-encode a string safely for embedding inside a JS call
         private static string J(string v) => JsonConvert.SerializeObject(v ?? "");
 
+        // Convert int color (0xRRGGBB) to CSS hex string. -1 = empty (no color).
+        private static string ColorToHex(int color) => color < 0 ? "" : $"#{color & 0xFFFFFF:X6}";
+
         // ----------------------------------------------------------------
         // IGenericKanban â€” Columns
         // ----------------------------------------------------------------
@@ -230,19 +233,19 @@ namespace GenericKanban
             _cardColumn.Clear();
         }
 
-        public void SetColumnHeaderColor(string columnId, string hexColor)
+        public void SetColumnHeaderColor(string columnId, int color)
         {
-            Exec($"kanban.setColumnHeaderColor({J(columnId)},{J(hexColor)})");
+            Exec($"kanban.setColumnHeaderColor({J(columnId)},{J(ColorToHex(color))})");
         }
 
-        public void SetColumnHeaderTextColor(string columnId, string hexColor)
+        public void SetColumnHeaderTextColor(string columnId, int color)
         {
-            Exec($"kanban.setColumnHeaderTextColor({J(columnId)},{J(hexColor)})");
+            Exec($"kanban.setColumnHeaderTextColor({J(columnId)},{J(ColorToHex(color))})");
         }
 
-        public void SetColumnBodyColor(string columnId, string hexColor)
+        public void SetColumnBodyColor(string columnId, int color)
         {
-            Exec($"kanban.setColumnBodyColor({J(columnId)},{J(hexColor)})");
+            Exec($"kanban.setColumnBodyColor({J(columnId)},{J(ColorToHex(color))})");
         }
 
         // ----------------------------------------------------------------
@@ -280,19 +283,19 @@ namespace GenericKanban
         // IGenericKanban â€” Card formatting
         // ----------------------------------------------------------------
 
-        public void SetCardBackgroundColor(string cardId, string hexColor)
+        public void SetCardBackgroundColor(string cardId, int color)
         {
-            Exec($"kanban.setCardBackgroundColor({J(cardId)},{J(hexColor)})");
+            Exec($"kanban.setCardBackgroundColor({J(cardId)},{J(ColorToHex(color))})");
         }
 
-        public void SetCardTextColor(string cardId, string hexColor)
+        public void SetCardTextColor(string cardId, int color)
         {
-            Exec($"kanban.setCardTextColor({J(cardId)},{J(hexColor)})");
+            Exec($"kanban.setCardTextColor({J(cardId)},{J(ColorToHex(color))})");
         }
 
-        public void SetCardBorderColor(string cardId, string hexColor)
+        public void SetCardBorderColor(string cardId, int color)
         {
-            Exec($"kanban.setCardBorderColor({J(cardId)},{J(hexColor)})");
+            Exec($"kanban.setCardBorderColor({J(cardId)},{J(ColorToHex(color))})");
         }
 
         public void SetCardTitle(string cardId, string title)
@@ -309,9 +312,9 @@ namespace GenericKanban
         // IGenericKanban â€” Board
         // ----------------------------------------------------------------
 
-        public void SetBoardBackgroundColor(string hexColor)
+        public void SetBoardBackgroundColor(int color)
         {
-            Exec($"kanban.setBoardBackgroundColor({J(hexColor)})");
+            Exec($"kanban.setBoardBackgroundColor({J(ColorToHex(color))})");
         }
 
         public void SetColumnWidth(int width)
@@ -323,9 +326,9 @@ namespace GenericKanban
         // IGenericKanban â€” Optional card metadata
         // ----------------------------------------------------------------
 
-        public void SetCardTag(string cardId, string label, string hexColor)
+        public void SetCardTag(string cardId, string label, int color)
         {
-            Exec($"kanban.setCardTag({J(cardId)},{J(label)},{J(hexColor)})");
+            Exec($"kanban.setCardTag({J(cardId)},{J(label)},{J(ColorToHex(color))})");
         }
 
         public void SetCardAssignee(string cardId, string assignee)
@@ -353,14 +356,14 @@ namespace GenericKanban
             Exec($"kanban.setReadOnly({(readOnly != 0 ? "true" : "false")})");
         }
 
-        public void SetCardStatusBar(string cardId, string label, string hexColor)
+        public void SetCardStatusBar(string cardId, string label, int color)
         {
-            Exec($"kanban.setCardStatusBar({J(cardId)},{J(label)},{J(hexColor)})");
+            Exec($"kanban.setCardStatusBar({J(cardId)},{J(label)},{J(ColorToHex(color))})");
         }
 
-        public void SetBoardTitle(string title, string hexBg, string hexText)
+        public void SetBoardTitle(string title, int colorBg, int colorText)
         {
-            Exec($"kanban.setBoardTitle({J(title)},{J(hexBg)},{J(hexText)})");
+            Exec($"kanban.setBoardTitle({J(title)},{J(ColorToHex(colorBg))},{J(ColorToHex(colorText))})");
         }
 
         // ----------------------------------------------------------------
@@ -432,9 +435,9 @@ namespace GenericKanban
             Exec($"kanban.addFilterGroup({J(groupId)},{J(title)})");
         }
 
-        public void AddFilterItem(string groupId, string itemId, string label, string hexColor)
+        public void AddFilterItem(string groupId, string itemId, string label, int color)
         {
-            Exec($"kanban.addFilterItem({J(groupId)},{J(itemId)},{J(label)},{J(hexColor)})");
+            Exec($"kanban.addFilterItem({J(groupId)},{J(itemId)},{J(label)},{J(ColorToHex(color))})");
         }
 
         public void SetCardFilterValue(string cardId, string groupId, string itemId)
