@@ -495,3 +495,121 @@ html, body {
   color:     #0052cc;
   line-height: 1;
 }
+
+/* ── Filter Panel ─────────────────────────────────────────────────── */
+
+.filter-selector {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.filter-btn--active {
+  background: rgba(255,255,255,0.35) !important;
+  border-color: rgba(255,255,255,0.6) !important;
+}
+
+.filter-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  min-width: 200px;
+  max-width: 300px;
+  z-index: 9999;
+  padding: 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+}
+
+.filter-panel--open {
+  display: block;
+}
+
+.fp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.fp-heading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5e6c84;
+}
+
+.fp-clear {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: #0052cc;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.fp-clear:hover { text-decoration: underline; }
+
+.fp-section {
+  margin-bottom: 10px;
+}
+
+.fp-section:last-child { margin-bottom: 0; }
+
+.fp-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #172b4d;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.fp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fp-item {
+  margin-bottom: 4px;
+}
+
+.fp-item:last-child { margin-bottom: 0; }
+
+.fp-item-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #172b4d;
+  padding: 2px 4px;
+  border-radius: 3px;
+  user-select: none;
+}
+
+.fp-item-label:hover {
+  background: #f0f5ff;
+}
+
+.fp-checkbox {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  accent-color: #0052cc;
+  cursor: pointer;
+}
+
+.fp-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}

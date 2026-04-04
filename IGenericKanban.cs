@@ -186,5 +186,35 @@ namespace GenericKanban
         /// </summary>
         [DispId(34)]
         void MoveCardToTop(string cardId);
+
+        // ── Filter Panel ──────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Clears all filter group and item definitions (does not clear card filter values).
+        /// </summary>
+        [DispId(35)]
+        void ClearFilters();
+
+        /// <summary>
+        /// Defines a filter group shown as a section in the filter panel.
+        /// groupId is a unique key; title is the heading shown in the UI.
+        /// </summary>
+        [DispId(36)]
+        void AddFilterGroup(string groupId, string title);
+
+        /// <summary>
+        /// Adds a selectable item to a filter group.
+        /// Pass hexColor for a colour dot (e.g. "#E74C3C") or empty string for none.
+        /// </summary>
+        [DispId(37)]
+        void AddFilterItem(string groupId, string itemId, string label, string hexColor);
+
+        /// <summary>
+        /// Tags a card with a filter value for a given group.
+        /// The control uses this to show/hide cards when the filter panel is active.
+        /// Pass empty itemId to clear the tag for that group.
+        /// </summary>
+        [DispId(38)]
+        void SetCardFilterValue(string cardId, string groupId, string itemId);
     }
 }

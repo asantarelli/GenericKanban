@@ -419,6 +419,30 @@ namespace GenericKanban
         }
 
         // ----------------------------------------------------------------
+        // Filter Panel
+        // ----------------------------------------------------------------
+
+        public void ClearFilters()
+        {
+            Exec("kanban.clearFilters()");
+        }
+
+        public void AddFilterGroup(string groupId, string title)
+        {
+            Exec($"kanban.addFilterGroup({J(groupId)},{J(title)})");
+        }
+
+        public void AddFilterItem(string groupId, string itemId, string label, string hexColor)
+        {
+            Exec($"kanban.addFilterItem({J(groupId)},{J(itemId)},{J(label)},{J(hexColor)})");
+        }
+
+        public void SetCardFilterValue(string cardId, string groupId, string itemId)
+        {
+            Exec($"kanban.setCardFilterValue({J(cardId)},{J(groupId)},{J(itemId)})");
+        }
+
+        // ----------------------------------------------------------------
         // Cleanup
         // ----------------------------------------------------------------
 

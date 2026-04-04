@@ -8,6 +8,9 @@
     _currentView: 'board',
     _titleBg:     '#1a1a1a',
     _titleText:   '#ffffff',
+    _filterDef:     [],   // [{id, title, items:[{id,label,hex}]}]
+    _cardFilters:   {},   // cardId -> {groupId: itemId}
+    _activeFilters: {},   // groupId -> Set<itemId>
     _currentView: 'board',
     _titleBg:   '#1a1a1a',
     _titleText: '#ffffff',
@@ -528,6 +531,30 @@
       titleSpan.textContent = title;
       bar.appendChild(titleSpan);
 
+      // Filter button
+      const filterWrap = document.createElement('div');
+      filterWrap.className = 'filter-selector';
+      filterWrap.id = 'filter-wrap';
+
+      const filterBtn = document.createElement('button');
+      filterBtn.className = 'view-btn filter-btn';
+      filterBtn.id = 'filter-btn';
+      filterBtn.textContent = '\u22c2 Filter';
+
+      const filterPanel = document.createElement('div');
+      filterPanel.className = 'filter-panel';
+      filterPanel.id = 'filter-panel';
+      this._buildFilterPanel(filterPanel);
+
+      filterBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        filterPanel.classList.toggle('filter-panel--open');
+      });
+
+      filterWrap.appendChild(filterBtn);
+      filterWrap.appendChild(filterPanel);
+      bar.appendChild(filterWrap);
+
       const sel = document.createElement('div');
       sel.className = 'view-selector';
 
@@ -610,6 +637,9 @@
           `<span class="kv-body">${this._esc(card.body)}</span>`,
         ];
 
+        if (!this._cardPassesFilter(card)) {
+          tr.style.display = 'none';
+        }
         cells.forEach(html => {
           const td = document.createElement('td');
           td.innerHTML = html;
@@ -617,6 +647,151 @@
         });
         tbody.appendChild(tr);
       });
+    },
+
+    // ── Filter Panel ──────────────────────────────────────────────────────
+
+    clearFilters() {
+      this._filterDef     = [];
+      this._cardFilters   = {};
+      this._activeFilters = {};
+      this._rebuildFilterPanel();
+      this._applyFilters();
+    },
+
+    addFilterGroup(groupId, title) {
+      if (this._filterDef.find(g => g.id === groupId)) return;
+      this._filterDef.push({ id: groupId, title, items: [] });
+      this._rebuildFilterPanel();
+    },
+
+    addFilterItem(groupId, itemId, label, hexColor) {
+      const group = this._filterDef.find(g => g.id === groupId);
+      if (!group) return;
+      if (group.items.find(i => i.id === itemId)) return;
+      group.items.push({ id: itemId, label, hex: hexColor || '' });
+      this._rebuildFilterPanel();
+    },
+
+    setCardFilterValue(cardId, groupId, itemId) {
+      if (!this._cardFilters[cardId]) this._cardFilters[cardId] = {};
+      if (!itemId) {
+        delete this._cardFilters[cardId][groupId];
+      } else {
+        this._cardFilters[cardId][groupId] = itemId;
+      }
+      this._applyFilters();
+    },
+
+    _buildFilterPanel(panel) {
+      panel.innerHTML = '';
+      const header = document.createElement('div');
+      header.className = 'fp-header';
+
+      const heading = document.createElement('span');
+      heading.className = 'fp-heading';
+      heading.textContent = 'Filter';
+      header.appendChild(heading);
+
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'fp-clear';
+      clearBtn.textContent = 'Clear all';
+      clearBtn.addEventListener('mousedown', e => {
+        e.preventDefault();
+        this._activeFilters = {};
+        this._applyFilters();
+        this._rebuildFilterPanel();
+        this._updateFilterBadge();
+      });
+      header.appendChild(clearBtn);
+      panel.appendChild(header);
+
+      this._filterDef.forEach(group => {
+        const section = document.createElement('div');
+        section.className = 'fp-section';
+
+        const label = document.createElement('div');
+        label.className = 'fp-group-label';
+        label.textContent = group.title;
+        section.appendChild(label);
+
+        const list = document.createElement('ul');
+        list.className = 'fp-list';
+
+        group.items.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'fp-item';
+
+          const lbl = document.createElement('label');
+          lbl.className = 'fp-item-label';
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'fp-checkbox';
+          cb.checked = this._activeFilters[group.id]?.has(item.id) ?? false;
+
+          cb.addEventListener('mousedown', e => { e.preventDefault(); });
+          cb.addEventListener('change', () => {
+            if (!this._activeFilters[group.id])
+              this._activeFilters[group.id] = new Set();
+            const s = this._activeFilters[group.id];
+            if (cb.checked) { s.add(item.id); }
+            else { s.delete(item.id); if (!s.size) delete this._activeFilters[group.id]; }
+            this._applyFilters();
+            this._updateFilterBadge();
+          });
+
+          lbl.appendChild(cb);
+
+          if (item.hex) {
+            const dot = document.createElement('span');
+            dot.className = 'fp-dot';
+            dot.style.background = item.hex;
+            lbl.appendChild(dot);
+          }
+
+          const txt = document.createElement('span');
+          txt.textContent = item.label;
+          lbl.appendChild(txt);
+
+          li.appendChild(lbl);
+          list.appendChild(li);
+        });
+
+        section.appendChild(list);
+        panel.appendChild(section);
+      });
+    },
+
+    _rebuildFilterPanel() {
+      const panel = document.getElementById('filter-panel');
+      if (panel) this._buildFilterPanel(panel);
+    },
+
+    _updateFilterBadge() {
+      const btn = document.getElementById('filter-btn');
+      if (!btn) return;
+      const count = Object.keys(this._activeFilters).length;
+      btn.textContent = count > 0 ? `\u22c2 Filter (${count})` : '\u22c2 Filter';
+      btn.classList.toggle('filter-btn--active', count > 0);
+    },
+
+    _cardPassesFilter(card) {
+      for (const [groupId, activeSet] of Object.entries(this._activeFilters)) {
+        if (!activeSet.size) continue;
+        const val = this._cardFilters[card.id]?.[groupId];
+        if (!val || !activeSet.has(val)) return false;
+      }
+      return true;
+    },
+
+    _applyFilters() {
+      Object.values(this._cards).forEach(card => {
+        const show = this._cardPassesFilter(card);
+        if (card.el) card.el.style.display = show ? '' : 'none';
+      });
+      // Refresh table if visible
+      if (this._currentView === 'table') this._refreshTable();
     },
 
     _esc(str) {
@@ -640,7 +815,11 @@
   };
 
   // Dismiss context menu on any click or right-click outside a card
-  document.addEventListener('click',        () => kanban._hideContextMenu());
+  document.addEventListener('click', () => {
+    kanban._hideContextMenu();
+    const p = document.getElementById('filter-panel');
+    if (p) p.classList.remove('filter-panel--open');
+  });
   document.addEventListener('contextmenu',  e  => {
     // Only dismiss if the right-click was NOT on a card (cards call stopPropagation)
     kanban._hideContextMenu();
