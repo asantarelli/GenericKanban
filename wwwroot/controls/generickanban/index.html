@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="board-title-bar" style="display:none"></div>
+  <div id="board"></div>
+  <div id="table-view" style="display:none">
+    <table class="kv-table">
+      <thead>
+        <tr>
+          <th>Card</th>
+          <th>Column</th>
+          <th>Tag</th>
+          <th>Assignee</th>
+          <th>Due Date</th>
+          <th>Progress</th>
+          <th>Priority</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody id="kv-tbody"></tbody>
+    </table>
+  </div>
+  <script src="sortable.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

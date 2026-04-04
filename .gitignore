@@ -1,0 +1,23 @@
+# Build outputs
+bin/
+obj/
+
+# Clarion deployment folder (generated artifacts)
+Clarion/
+
+# Visual Studio files
+*.user
+*.suo
+.vs/
+
+# NuGet packages
+packages/
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db
+.DS_Store

@@ -1,0 +1,429 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseWindowsForms>true</UseWindowsForms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>GenericKanban</AssemblyName>
+    <RootNamespace>GenericKanban</RootNamespace>
+    <Optimize>true</Optimize>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+
+  <!-- Exclude Template folder from compilation -->
+  <ItemGroup>
+    <Compile Remove="Template\**\*" />
+    <None    Remove="Template\**\*" />
+    <Content Remove="Template\**\*" />
+    <EmbeddedResource Remove="Template\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2849.39" />
+    <PackageReference Include="Newtonsoft.Json"        Version="13.0.3" />
+  </ItemGroup>
+
+  <!-- Copy wwwroot to output directory so the DLL can find it at runtime -->
+  <ItemGroup>
+    <Content Include="wwwroot\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- â”€â”€ Post-build: copy manifest â†’ output, then deploy to Clarion\ â”€â”€â”€â”€ -->
+
+  <Target Name="CreateClarionFolders" BeforeTargets="CopyToClarion">
+    <MakeDir Directories="$(ProjectDir)Clarion\accessory\bin"       Condition="!Exists('$(ProjectDir)Clarion\accessory\bin')" />
+    <MakeDir Directories="$(ProjectDir)Clarion\accessory\resources" Condition="!Exists('$(ProjectDir)Clarion\accessory\resources')" />
+  </Target>
+
+  <Target Name="CopyManifest" AfterTargets="Build">
+    <Copy SourceFiles="$(ProjectDir)$(AssemblyName).manifest"
+          DestinationFiles="$(OutputPath)$(AssemblyName).manifest"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(ProjectDir)$(AssemblyName).manifest')" />
+  </Target>
+
+  <Target Name="CopyToClarion" AfterTargets="CopyManifest">
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+          DestinationFiles="$(ProjectDir)Clarion\accessory\bin\$(AssemblyName).dll"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).manifest"
+          DestinationFiles="$(ProjectDir)Clarion\accessory\resources\$(AssemblyName).manifest"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(OutputPath)$(AssemblyName).manifest')" />
+    <Message Text="Deployed to $(ProjectDir)Clarion\accessory\" Importance="high" />
+  </Target>
+
+  <Target Name="CopyDependenciesToClarion" AfterTargets="CopyToClarion">
+    <ItemGroup>
+      <DependencyDlls Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(AssemblyName).dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DependencyDlls)"
+          DestinationFolder="$(ProjectDir)Clarion\accessory\bin"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyWwwrootToClarion" AfterTargets="CopyDependenciesToClarion">
+    <MakeDir Directories="$(ProjectDir)Clarion\accessory\resources\wwwroot"
+             Condition="!Exists('$(ProjectDir)Clarion\accessory\resources\wwwroot')" />
+    <ItemGroup>
+      <WwwrootFiles Include="$(ProjectDir)wwwroot\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WwwrootFiles)"
+          DestinationFolder="$(ProjectDir)Clarion\accessory\resources\wwwroot\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+    <Message Text="Copied wwwroot to Clarion\accessory\resources\wwwroot" Importance="high" />
+  </Target>
+
+  <!-- â”€â”€ Generate Clarion metadata files â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+
+  <!-- Generate .header file - required by UltimateCOM to discover the control -->
+  <Target Name="GenerateHeaderFile" AfterTargets="CopyDependenciesToClarion">
+    <ItemGroup>
+      <HeaderContent Include="[ControlType]" />
+      <HeaderContent Include="UserControl" />
+      <HeaderContent Include="[Version]" />
+      <HeaderContent Include="1.0.0.0" />
+      <HeaderContent Include="[Description]" />
+      <HeaderContent Include="Generic Kanban board - user-defined columns, cards, drag-drop with CardMoved event" />
+      <HeaderContent Include="[ProgID]" />
+      <HeaderContent Include="GenericKanban.GenericKanbanControl" />
+      <HeaderContent Include="[DllsToCopy]" />
+      <HeaderContent Include="GenericKanban.dll" />
+      <HeaderContent Include="[ControlsToCopy]" />
+      <HeaderContent Include="GenericKanban.manifest" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(ProjectDir)Clarion\accessory\resources\GenericKanban.header"
+                      Lines="@(HeaderContent)" Overwrite="true" />
+  </Target>
+
+  <Target Name="GenerateDetailsFile" AfterTargets="GenerateHeaderFile">
+    <ItemGroup>
+      <DetailsContent Include="[FriendlyName]" />
+      <DetailsContent Include="Generic Kanban Board" />
+      <DetailsContent Include="[ProgID]" />
+      <DetailsContent Include="GenericKanban.GenericKanbanControl" />
+      <DetailsContent Include="[FilenameNoExtenstion]" />
+      <DetailsContent Include="GenericKanban" />
+      <DetailsContent Include="[Description]" />
+      <DetailsContent Include="A generic, database-agnostic Kanban board control. Supports user-defined columns and cards with custom formatting. Cards can be dragged between columns and a CardMoved event fires back to Clarion." />
+      <DetailsContent Include="[ObjectName]" />
+      <DetailsContent Include="oKanban" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(ProjectDir)Clarion\accessory\resources\GenericKanban.GenericKanbanControl.details"
+                      Lines="@(DetailsContent)" Overwrite="true" />
+  </Target>
+
+  <Target Name="GenerateEventsFile" AfterTargets="GenerateDetailsFile">
+    <ItemGroup>
+      <EventsContent Include="[Event]" />
+      <EventsContent Include="CardMoved" />
+      <EventsContent Include="[EventDescription]" />
+      <EventsContent Include="Fired after a card is successfully dragged from one column to another." />
+      <EventsContent Include="[Parameter1]" />
+      <EventsContent Include="cardId" />
+      <EventsContent Include="[Parameter1Type]" />
+      <EventsContent Include="STRING" />
+      <EventsContent Include="[Parameter1Description]" />
+      <EventsContent Include="ID of the card that was moved." />
+      <EventsContent Include="[Parameter2]" />
+      <EventsContent Include="fromColumnId" />
+      <EventsContent Include="[Parameter2Type]" />
+      <EventsContent Include="STRING" />
+      <EventsContent Include="[Parameter2Description]" />
+      <EventsContent Include="ID of the column the card was dragged FROM." />
+      <EventsContent Include="[Parameter3]" />
+      <EventsContent Include="toColumnId" />
+      <EventsContent Include="[Parameter3Type]" />
+      <EventsContent Include="STRING" />
+      <EventsContent Include="[Parameter3Description]" />
+      <EventsContent Include="ID of the column the card was dragged TO." />
+    </ItemGroup>
+    <WriteLinesToFile File="$(ProjectDir)Clarion\accessory\resources\GenericKanban.GenericKanbanControl.events"
+                      Lines="@(EventsContent)" Overwrite="true" />
+  </Target>
+
+  <Target Name="GenerateMethodsFile" AfterTargets="GenerateEventsFile">
+    <ItemGroup>
+      <!-- AddColumn -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="AddColumn" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Adds a new column to the Kanban board." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="columnId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Unique identifier for the column." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="title" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Display title shown in the column header." />
+      <MethodsContent Include=" " />
+      <!-- RemoveColumn -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="RemoveColumn" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Removes a column and all its cards from the board." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="columnId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the column to remove." />
+      <MethodsContent Include=" " />
+      <!-- ClearColumns -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="ClearColumns" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Removes all columns and cards from the board." />
+      <MethodsContent Include=" " />
+      <!-- SetColumnHeaderColor -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetColumnHeaderColor" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the background colour of a column header (hex e.g. #3498DB)." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="columnId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the target column." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="hexColor" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Hex colour string, e.g. #3498DB" />
+      <MethodsContent Include=" " />
+      <!-- SetColumnHeaderTextColor -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetColumnHeaderTextColor" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the text colour of a column header label." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="columnId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the target column." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="hexColor" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Hex colour string." />
+      <MethodsContent Include=" " />
+      <!-- SetColumnBodyColor -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetColumnBodyColor" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the background colour of the column body (card area)." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="columnId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the target column." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="hexColor" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Hex colour string." />
+      <MethodsContent Include=" " />
+      <!-- AddCard -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="AddCard" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Adds a card to the specified column." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Unique identifier for the card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="columnId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the column to add the card into." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="title" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Bold title text shown on the card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="body" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Body/description text shown below the title." />
+      <MethodsContent Include=" " />
+      <!-- RemoveCard -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="RemoveCard" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Removes a card from the board by its ID." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the card to remove." />
+      <MethodsContent Include=" " />
+      <!-- ClearColumnCards -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="ClearColumnCards" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Removes all cards from a specific column." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="columnId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the column to clear." />
+      <MethodsContent Include=" " />
+      <!-- GetCardColumn -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="GetCardColumn" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Returns the column ID that currently contains the specified card. Returns empty string if card not found." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the card to locate." />
+      <MethodsContent Include=" " />
+      <!-- SetCardBackgroundColor -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetCardBackgroundColor" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the background colour of a card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="hexColor" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Hex colour string." />
+      <MethodsContent Include=" " />
+      <!-- SetCardTextColor -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetCardTextColor" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the text (title + body) colour of a card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="hexColor" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Hex colour string." />
+      <MethodsContent Include=" " />
+      <!-- SetCardBorderColor -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetCardBorderColor" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the border colour of a card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="hexColor" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Hex colour string." />
+      <MethodsContent Include=" " />
+      <!-- SetCardTitle -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetCardTitle" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Updates the title text displayed on an existing card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="title" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="New title text." />
+      <MethodsContent Include=" " />
+      <!-- SetCardBody -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetCardBody" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Updates the body/description text displayed on an existing card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="cardId" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="ID of the card." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="body" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="New body text." />
+      <MethodsContent Include=" " />
+      <!-- SetBoardBackgroundColor -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetBoardBackgroundColor" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the background colour of the entire board canvas." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="hexColor" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="STRING" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Hex colour string." />
+      <MethodsContent Include=" " />
+      <!-- SetColumnWidth -->
+      <MethodsContent Include="[Method]" />
+      <MethodsContent Include="SetColumnWidth" />
+      <MethodsContent Include="[MethodDescription]" />
+      <MethodsContent Include="Sets the pixel width applied to every column. Default is 220." />
+      <MethodsContent Include="[Parameter]" />
+      <MethodsContent Include="width" />
+      <MethodsContent Include="[ParameterType]" />
+      <MethodsContent Include="LONG" />
+      <MethodsContent Include="[ParameterDescription]" />
+      <MethodsContent Include="Column width in pixels (minimum 120)." />
+    </ItemGroup>
+    <WriteLinesToFile File="$(ProjectDir)Clarion\accessory\resources\GenericKanban.GenericKanbanControl.methods"
+                      Lines="@(MethodsContent)" Overwrite="true" />
+  </Target>
+
+</Project>
