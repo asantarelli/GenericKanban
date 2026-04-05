@@ -102,12 +102,15 @@ INCLUDE('KanbanWrapper.inc'),ONCE
     OLE,AT(,,450,250),USE(?KanbanOLE)
     END
   END
-#DECLARE(%KanbanFEQ)
 #PROMPT('Object Name:',@S50),%KanbanObjName,DEFAULT('Kanban' & %ActiveTemplateInstance)
 #PREPARE
   #INSERT(%ReadGlobal,3,0)
 #ENDPREPARE
 #ATSTART
+  #IF(VarExists(%KanbanFEQ) = 0)
+    #DECLARE(%KanbanFEQ)
+    #SET(%KanbanFEQ,0)
+  #EndIf
   #FOR(%Control),WHERE(%ControlInstance = %ActiveTemplateInstance)
     #SET(%KanbanFEQ,%Control)
   #ENDFOR
