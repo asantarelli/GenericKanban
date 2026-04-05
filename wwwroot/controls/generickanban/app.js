@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   'use strict';
 
   const kanban = {
@@ -547,20 +547,16 @@
       document.getElementById('board').classList.toggle('board-readonly', !!readOnly);
     },
 
-    setBoardTitle(title, hexBg, hexText) {
+    // Build toolbar once at startup so buttons are always visible even
+    // when setBoardTitle is never called.
+    _buildToolbar() {
       const bar = document.getElementById('board-title-bar');
-      if (!bar) return;
-      if (!title) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
-      this._titleBg = hexBg || '#1a1a1a';
-      this._titleText = hexText || '#ffffff';
-      bar.style.display = 'flex';
-      bar.style.backgroundColor = this._titleBg;
-      bar.style.color = this._titleText;
-      bar.innerHTML = '';
+      if (!bar || bar.dataset.toolbarBuilt) return;
+      bar.dataset.toolbarBuilt = '1';
 
       const titleSpan = document.createElement('span');
       titleSpan.className = 'board-title-text';
-      titleSpan.textContent = title;
+      titleSpan.id = 'board-title-text';
       bar.appendChild(titleSpan);
 
       // Filter button
@@ -596,6 +592,7 @@
       dmBtn.addEventListener('click', () => this._toggleDarkMode());
       bar.appendChild(dmBtn);
 
+      // View switcher
       const sel = document.createElement('div');
       sel.className = 'view-selector';
 
@@ -625,6 +622,20 @@
       sel.appendChild(btn);
       sel.appendChild(dropdown);
       bar.appendChild(sel);
+
+      // Show bar with default colours
+      bar.style.display = 'flex';
+      bar.style.backgroundColor = this._titleBg;
+      bar.style.color = this._titleText;
+    },
+
+    setBoardTitle(title, hexBg, hexText) {
+      const bar = document.getElementById('board-title-bar');
+      if (!bar) return;
+      if (hexBg) { this._titleBg = hexBg; bar.style.backgroundColor = hexBg; }
+      if (hexText) { this._titleText = hexText; bar.style.color = hexText; }
+      const span = document.getElementById('board-title-text');
+      if (span) span.textContent = title || '';
     },
 
     _switchView(view) {
@@ -990,6 +1001,7 @@
   });
 
   window.kanban = kanban;
+  kanban._buildToolbar();
 
   function sendReady(attempts) {
     if (attempts > 100) return;
