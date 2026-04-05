@@ -3,38 +3,45 @@
 
   const kanban = {
     _columns: {},
-    _cards:   {},
+    _cards: {},
     _colWidth: 260,
-    _currentView: 'board',
-    _titleBg:     '#1a1a1a',
-    _titleText:   '#ffffff',
-    _filterDef:     [],   // [{id, title, items:[{id,label,hex}]}]
-    _cardFilters:   {},   // cardId -> {groupId: itemId}
+    _filterDef: [],   // [{id, title, items:[{id,label,hex}]}]
+    _cardFilters: {},   // cardId -> {groupId: itemId}
     _activeFilters: {},   // groupId -> Set<itemId>
     _currentView: 'board',
-    _titleBg:   '#1a1a1a',
+    _titleBg: '#1a1a1a',
     _titleText: '#ffffff',
 
-    // â”€â”€ Context menu state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    _menuDef:   [],   // root-level node array
-    _menuMap:   {},   // id â†’ node (for parent lookups when building)
+    //  Context menu state 
+    _menuDef: [],   // root-level node array
+    _menuMap: {},   // id â†’ node (for parent lookups when building)
     _ctxCardId: null, // card that was right-clicked
-    _ctxEl:     null, // current visible menu DOM element
+    _sortKeys: [],        // [{col, dir}] multi-column sort state
+    _tableSortInit: false,
+    _searchText: '',
+    _searchEnabled: true,
+    _ctxEl: null, // current visible menu DOM element
 
     _initSortable(col) {
       col.sortable = new Sortable(col.cardList, {
-        group:                'kanban-cards',
-        animation:            180,
-        easing:               'cubic-bezier(.25,1,.5,1)',
-        ghostClass:           'card-ghost',
-        chosenClass:          'card-chosen',
-        dragClass:            'card-drag',
+        group: 'kanban-cards',
+        animation: 180,
+        easing: 'cubic-bezier(.25,1,.5,1)',
+        ghostClass: 'card-ghost',
+        chosenClass: 'card-chosen',
+        dragClass: 'card-drag',
         emptyInsertThreshold: 20,
         onEnd(evt) {
-          const cardId     = evt.item.dataset.cardId;
+          const cardId = evt.item.dataset.cardId;
           const fromColumn = evt.from.dataset.colId;
-          const toColumn   = evt.to.dataset.colId;
+          const toColumn = evt.to.dataset.colId;
           if (kanban._cards[cardId]) kanban._cards[cardId].columnId = toColumn;
+          if (fromColumn !== toColumn) {
+            const fromCol = kanban._columns[fromColumn];
+            const toCol = kanban._columns[toColumn];
+            if (fromCol) fromCol.cardCount = Math.max(0, (fromCol.cardCount || 0) - 1);
+            if (toCol) toCol.cardCount = (toCol.cardCount || 0) + 1;
+          }
           kanban._refreshCount(fromColumn);
           if (toColumn !== fromColumn) kanban._refreshCount(toColumn);
           window.chrome.webview.postMessage(JSON.stringify({
@@ -47,13 +54,12 @@
     _refreshCount(columnId) {
       const col = this._columns[columnId];
       if (!col) return;
-      const n = Object.values(this._cards).filter(c => c.columnId === columnId).length;
-      col.count.textContent = n;
+      col.count.textContent = col.cardCount;
     },
 
     _makeCardEl(card) {
       const el = document.createElement('div');
-      el.className      = 'card';
+      el.className = 'card';
       el.dataset.cardId = card.id;
       if (card.bgColor) el.style.backgroundColor = card.bgColor;
 
@@ -73,7 +79,7 @@
         if (card.statusLabel) {
           bar.classList.add('card-statusbar--wide');
           const lbl = document.createElement('span');
-          lbl.className   = 'card-statusbar-label';
+          lbl.className = 'card-statusbar-label';
           lbl.textContent = card.statusLabel;
           bar.appendChild(lbl);
         }
@@ -86,21 +92,21 @@
 
       if (card.tag) {
         const tag = document.createElement('div');
-        tag.className   = 'card-tag';
+        tag.className = 'card-tag';
         tag.textContent = card.tag;
         if (card.tagColor) tag.style.color = card.tagColor;
         content.appendChild(tag);
       }
 
       const t = document.createElement('div');
-      t.className   = 'card-title';
+      t.className = 'card-title';
       t.textContent = card.title;
       if (card.textColor) t.style.color = card.textColor;
       content.appendChild(t);
 
       if (card.body) {
         const b = document.createElement('div');
-        b.className   = 'card-body';
+        b.className = 'card-body';
         b.textContent = card.body;
         if (card.textColor) b.style.color = card.textColor;
         content.appendChild(b);
@@ -108,7 +114,7 @@
 
       if (card.overdue) {
         const ov = document.createElement('div');
-        ov.className   = 'card-overdue';
+        ov.className = 'card-overdue';
         ov.textContent = 'OVERDUE';
         content.appendChild(ov);
       }
@@ -118,13 +124,13 @@
         meta.className = 'card-meta';
         if (card.assignee) {
           const a = document.createElement('span');
-          a.className   = 'card-assignee';
+          a.className = 'card-assignee';
           a.textContent = card.assignee;
           meta.appendChild(a);
         }
         if (card.dueDate) {
           const d = document.createElement('span');
-          d.className   = 'card-due';
+          d.className = 'card-due';
           d.textContent = 'Due: ' + card.dueDate;
           meta.appendChild(d);
         }
@@ -154,12 +160,11 @@
       card.el = newEl;
     },
 
-    // â”€â”€ Context Menu â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Context Menu 
 
     clearContextMenu() {
       this._menuDef = [];
       this._menuMap = {};
-      this._radioGrps = {};
       this._hideContextMenu();
     },
 
@@ -170,7 +175,7 @@
         this._menuDef.push(node);
       } else {
         const parent = this._menuMap[parentId];
-        if (parent) parent.children.push(node);
+        if (parent && Array.isArray(parent.children)) parent.children.push(node);
       }
     },
 
@@ -191,14 +196,13 @@
         this._menuDef.push(node);
       } else {
         const parent = this._menuMap[parentId];
-        if (parent) parent.children.push(node);
+        if (parent && Array.isArray(parent.children)) parent.children.push(node);
       }
     },
 
     addContextMenuRadioGroup(parentId, groupId, label) {
       const node = { type: 'radio', id: groupId, label, children: [] };
       this._menuMap[groupId] = node;
-      this._radioGrps[groupId] = groupId;
       if (!parentId) {
         this._menuDef.push(node);
       } else {
@@ -269,10 +273,10 @@
           li.addEventListener('mouseenter', () => {
             const r = li.getBoundingClientRect();
             if (r.right + 170 > window.innerWidth) {
-              subEl.style.left  = 'auto';
+              subEl.style.left = 'auto';
               subEl.style.right = '100%';
             } else {
-              subEl.style.left  = '100%';
+              subEl.style.left = '100%';
               subEl.style.right = 'auto';
             }
           });
@@ -302,10 +306,10 @@
           li.addEventListener('mouseenter', () => {
             const r = li.getBoundingClientRect();
             if (r.right + 170 > window.innerWidth) {
-              subEl.style.left  = 'auto';
+              subEl.style.left = 'auto';
               subEl.style.right = '100%';
             } else {
-              subEl.style.left  = '100%';
+              subEl.style.left = '100%';
               subEl.style.right = 'auto';
             }
           });
@@ -326,18 +330,18 @@
       const menu = this._buildMenuEl(this._menuDef, card);
       // Place off-screen first so we can measure it
       menu.style.position = 'fixed';
-      menu.style.top      = '-9999px';
-      menu.style.left     = '-9999px';
+      menu.style.top = '-9999px';
+      menu.style.left = '-9999px';
       document.body.appendChild(menu);
       this._ctxEl = menu;
 
       // Clamp to viewport so menu never appears off-screen
-      const w  = menu.offsetWidth  || 170;
-      const h  = menu.offsetHeight || 20;
-      const cx = (x + w > window.innerWidth)  ? window.innerWidth  - w - 4 : x;
+      const w = menu.offsetWidth || 170;
+      const h = menu.offsetHeight || 20;
+      const cx = (x + w > window.innerWidth) ? window.innerWidth - w - 4 : x;
       const cy = (y + h > window.innerHeight) ? window.innerHeight - h - 4 : y;
       menu.style.left = cx + 'px';
-      menu.style.top  = cy + 'px';
+      menu.style.top = cy + 'px';
     },
 
     _hideContextMenu() {
@@ -345,7 +349,7 @@
       this._ctxCardId = null;
     },
 
-    // â”€â”€ Column Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Column Methods 
 
     addColumn(id, title) {
       if (this._columns[id]) return;
@@ -357,25 +361,25 @@
       header.className = 'column-header';
 
       const titleEl = document.createElement('span');
-      titleEl.className   = 'column-title';
+      titleEl.className = 'column-title';
       titleEl.textContent = title;
 
       const count = document.createElement('span');
-      count.className   = 'column-count';
+      count.className = 'column-count';
       count.textContent = '0';
 
       header.appendChild(titleEl);
       header.appendChild(count);
 
       const cardList = document.createElement('div');
-      cardList.className     = 'card-list';
+      cardList.className = 'card-list';
       cardList.dataset.colId = id;
 
       col.appendChild(header);
       col.appendChild(cardList);
       document.getElementById('board').appendChild(col);
 
-      const entry = { id, el: col, header, titleEl, count, cardList, sortable: null };
+      const entry = { id, el: col, header, titleEl, count, cardList, sortable: null, cardCount: 0 };
       this._columns[id] = entry;
       this._initSortable(entry);
     },
@@ -384,7 +388,10 @@
       const col = this._columns[id];
       if (!col) return;
       Object.keys(this._cards).forEach(cid => {
-        if (this._cards[cid].columnId === id) delete this._cards[cid];
+        if (this._cards[cid].columnId === id) {
+          delete this._cardFilters[cid];
+          delete this._cards[cid];
+        }
       });
       if (col.sortable) col.sortable.destroy();
       col.el.remove();
@@ -402,7 +409,22 @@
 
     setColumnHeaderTextColor(id, hex) {
       const col = this._columns[id];
-      if (col) col.titleEl.style.color = hex;
+      if (col) { col.titleEl.style.color = hex; col.count.style.color = hex; }
+    },
+
+    setDarkMode(enabled) {
+      document.body.classList.toggle('dark', !!enabled);
+      const btn = document.getElementById('dm-toggle-btn');
+      if (btn) btn.textContent = enabled ? '\u2600\ufe0f' : '\ud83c\udf19';
+    },
+
+    _toggleDarkMode() {
+      const isDark = !document.body.classList.contains('dark');
+      this.setDarkMode(isDark);
+    },
+
+    setAllColumnHeaderTextColor(hex) {
+      Object.values(this._columns).forEach(col => { col.titleEl.style.color = hex; col.count.style.color = hex; });
     },
 
     setColumnBodyColor(id, hex) {
@@ -410,7 +432,7 @@
       if (col) col.el.style.backgroundColor = hex;
     },
 
-    // â”€â”€ Card Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Card Methods 
 
     addCard(cardId, columnId, title, body) {
       if (this._cards[cardId] || !this._columns[columnId]) return;
@@ -426,6 +448,7 @@
       const el = this._makeCardEl(card);
       card.el = el;
       this._cards[cardId] = card;
+      this._columns[columnId].cardCount = (this._columns[columnId].cardCount || 0) + 1;
       this._columns[columnId].cardList.appendChild(el);
       this._refreshCount(columnId);
     },
@@ -435,7 +458,10 @@
       if (!card) return;
       const colId = card.columnId;
       card.el.remove();
+      delete this._cardFilters[cardId];
       delete this._cards[cardId];
+      const colEntry = this._columns[colId];
+      if (colEntry) colEntry.cardCount = Math.max(0, (colEntry.cardCount || 0) - 1);
       this._refreshCount(colId);
     },
 
@@ -443,9 +469,12 @@
       Object.keys(this._cards).forEach(id => {
         if (this._cards[id].columnId === columnId) {
           this._cards[id].el.remove();
+          delete this._cardFilters[id];
           delete this._cards[id];
         }
       });
+      const col = this._columns[columnId];
+      if (col) col.cardCount = 0;
       this._refreshCount(columnId);
     },
 
@@ -492,7 +521,9 @@
 
     setCardProgress(cardId, progress) {
       const card = this._cards[cardId]; if (!card) return;
-      card.progress = (progress >= 0) ? progress : -1; this._rebuildCard(cardId);
+      const p = Number(progress);
+      card.progress = (!isNaN(p) && p >= 0) ? Math.min(100, p) : -1;
+      this._rebuildCard(cardId);
     },
 
     setCardOverdue(cardId, overdue) {
@@ -502,12 +533,12 @@
 
     setCardStatusBar(cardId, label, hexColor) {
       const card = this._cards[cardId]; if (!card) return;
-      card.statusLabel = label    || null;
+      card.statusLabel = label || null;
       card.statusColor = hexColor || null;
       this._rebuildCard(cardId);
     },
 
-    // â”€â”€ Board Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Board Methods 
 
     setReadOnly(readOnly) {
       Object.values(this._columns).forEach(col => {
@@ -518,16 +549,17 @@
 
     setBoardTitle(title, hexBg, hexText) {
       const bar = document.getElementById('board-title-bar');
+      if (!bar) return;
       if (!title) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
-      this._titleBg   = hexBg   || '#1a1a1a';
+      this._titleBg = hexBg || '#1a1a1a';
       this._titleText = hexText || '#ffffff';
-      bar.style.display         = 'flex';
+      bar.style.display = 'flex';
       bar.style.backgroundColor = this._titleBg;
-      bar.style.color           = this._titleText;
+      bar.style.color = this._titleText;
       bar.innerHTML = '';
 
       const titleSpan = document.createElement('span');
-      titleSpan.className   = 'board-title-text';
+      titleSpan.className = 'board-title-text';
       titleSpan.textContent = title;
       bar.appendChild(titleSpan);
 
@@ -554,6 +586,15 @@
       filterWrap.appendChild(filterBtn);
       filterWrap.appendChild(filterPanel);
       bar.appendChild(filterWrap);
+
+      // Dark mode toggle
+      const dmBtn = document.createElement('button');
+      dmBtn.className = 'view-btn dm-toggle-btn';
+      dmBtn.id = 'dm-toggle-btn';
+      dmBtn.textContent = document.body.classList.contains('dark') ? '\u2600\ufe0f' : '\ud83c\udf19';
+      dmBtn.title = 'Toggle dark mode';
+      dmBtn.addEventListener('click', () => this._toggleDarkMode());
+      bar.appendChild(dmBtn);
 
       const sel = document.createElement('div');
       sel.className = 'view-selector';
@@ -588,7 +629,7 @@
 
     _switchView(view) {
       this._currentView = view;
-      const btn      = document.getElementById('view-btn');
+      const btn = document.getElementById('view-btn');
       const dropdown = document.getElementById('view-dropdown');
       if (btn) btn.textContent = view === 'board' ? '\u229e Board \u25be' : '\u2630 Table \u25be';
       if (dropdown) {
@@ -605,7 +646,76 @@
       } else {
         board.style.display = 'none';
         table.style.display = '';
+        this._initTableSort();
         this._refreshTable();
+      }
+    },
+
+    _initTableSort() {
+      if (this._tableSortInit) return;
+      this._tableSortInit = true;
+      document.querySelectorAll('.kv-table thead th[data-col]').forEach(th => {
+        th.addEventListener('click', e => {
+          const col = th.dataset.col;
+          const idx = this._sortKeys.findIndex(s => s.col === col);
+          if (e.shiftKey) {
+            if (idx === -1) {
+              this._sortKeys.push({ col, dir: 'asc' });
+            } else if (this._sortKeys[idx].dir === 'asc') {
+              this._sortKeys[idx].dir = 'desc';
+            } else {
+              this._sortKeys.splice(idx, 1);
+            }
+          } else {
+            if (idx === -1 || this._sortKeys.length > 1) {
+              this._sortKeys = [{ col, dir: 'asc' }];
+            } else if (this._sortKeys[idx].dir === 'asc') {
+              this._sortKeys = [{ col, dir: 'desc' }];
+            } else {
+              this._sortKeys = [];
+            }
+          }
+          this._updateSortHeaders();
+          this._refreshTable();
+        });
+      });
+    },
+
+    _updateSortHeaders() {
+      document.querySelectorAll('.kv-table thead th[data-col]').forEach(th => {
+        const col = th.dataset.col;
+        const existing = th.querySelector('.kv-sort-ind');
+        if (existing) existing.remove();
+        const idx = this._sortKeys.findIndex(s => s.col === col);
+        if (idx === -1) return;
+        const { dir } = this._sortKeys[idx];
+        const span = document.createElement('span');
+        span.className = 'kv-sort-ind';
+        span.textContent = (dir === 'asc' ? ' ▲' : ' ▼') +
+          (this._sortKeys.length > 1 ? (idx + 1) : '');
+        th.appendChild(span);
+      });
+    },
+
+    _getSortValue(card, col) {
+      switch (col) {
+        case 'title': return (card.title || '').toLowerCase();
+        case 'column': { const c = this._columns[card.columnId]; return c ? c.titleEl.textContent.toLowerCase() : ''; }
+        case 'tag': return (card.tag || '').toLowerCase();
+        case 'assignee': return (card.assignee || '').toLowerCase();
+        case 'dueDate': {
+          const d = card.dueDate || '';
+          // Support DD/MM/YYYY and DD/MM/YY
+          const m4 = d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (m4) return `${m4[3]}${m4[2]}${m4[1]}`;
+          const m2 = d.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+          if (m2) return `20${m2[3]}${m2[2]}${m2[1]}`;
+          return d;
+        }
+        case 'progress': return typeof card.progress === 'number' ? card.progress : -1;
+        case 'priority': return (card.statusLabel || '').toLowerCase();
+        case 'body': return (card.body || '').toLowerCase();
+        default: return '';
       }
     },
 
@@ -613,11 +723,28 @@
       const tbody = document.getElementById('kv-tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
-      Object.values(this._cards).forEach(card => {
-        const col      = this._columns[card.columnId];
+      let _cards = Object.values(this._cards);
+      if (this._sortKeys.length) {
+        _cards = _cards.slice().sort((a, b) => {
+          for (const { col, dir } of this._sortKeys) {
+            const av = this._getSortValue(a, col);
+            const bv = this._getSortValue(b, col);
+            let cmp = 0;
+            if (typeof av === 'number' && typeof bv === 'number') {
+              cmp = av - bv;
+            } else {
+              cmp = String(av).localeCompare(String(bv));
+            }
+            if (cmp !== 0) return dir === 'asc' ? cmp : -cmp;
+          }
+          return 0;
+        });
+      }
+      _cards.forEach(card => {
+        const col = this._columns[card.columnId];
         const colTitle = col ? col.titleEl.textContent : card.columnId;
         const tr = document.createElement('tr');
-        tr.className      = 'kv-row';
+        tr.className = 'kv-row';
         tr.dataset.cardId = card.id;
 
         const cells = [
@@ -627,9 +754,9 @@
             ? `<span class="kv-tag" style="color:${this._esc(card.tagColor || '#5c9fe8')}">${this._esc(card.tag)}</span>`
             : '',
           this._esc(card.assignee || ''),
-          this._esc(card.dueDate  || ''),
+          this._esc(card.dueDate || ''),
           card.progress >= 0
-            ? `<div class="kv-progress"><div class="kv-progress-fill" style="width:${card.progress}%"></div></div><span class="kv-progress-pct">${card.progress}%</span>`
+            ? `<div class="kv-progress"><div class="kv-progress-fill" style="width:${Math.min(100, Math.max(0, card.progress))}%"></div></div><span class="kv-progress-pct">${card.progress}%</span>`
             : '',
           card.statusColor
             ? `<span class="kv-priority"><span class="kv-priority-dot" style="background:${this._esc(card.statusColor)}"></span>${this._esc(card.statusLabel || '')}</span>`
@@ -652,9 +779,10 @@
     // ── Filter Panel ──────────────────────────────────────────────────────
 
     clearFilters() {
-      this._filterDef     = [];
-      this._cardFilters   = {};
+      this._filterDef = [];
+      this._cardFilters = {};
       this._activeFilters = {};
+      this._searchText = '';
       this._rebuildFilterPanel();
       this._applyFilters();
     },
@@ -699,12 +827,33 @@
       clearBtn.addEventListener('mousedown', e => {
         e.preventDefault();
         this._activeFilters = {};
+        this._searchText = '';
         this._applyFilters();
         this._rebuildFilterPanel();
         this._updateFilterBadge();
       });
       header.appendChild(clearBtn);
       panel.appendChild(header);
+
+      if (this._searchEnabled) {
+        const searchSec = document.createElement('div');
+        searchSec.className = 'fp-section fp-search-section';
+        const si = document.createElement('input');
+        si.type = 'text';
+        si.className = 'fp-search';
+        si.placeholder = 'Search cards…';
+        si.value = this._searchText;
+        si.addEventListener('input', e => {
+          e.stopPropagation();
+          this._searchText = si.value;
+          this._applyFilters();
+          this._updateFilterBadge();
+        });
+        si.addEventListener('mousedown', e => e.stopPropagation());
+        si.addEventListener('click', e => e.stopPropagation());
+        searchSec.appendChild(si);
+        panel.appendChild(searchSec);
+      }
 
       this._filterDef.forEach(group => {
         const section = document.createElement('div');
@@ -771,7 +920,7 @@
     _updateFilterBadge() {
       const btn = document.getElementById('filter-btn');
       if (!btn) return;
-      const count = Object.keys(this._activeFilters).length;
+      const count = Object.keys(this._activeFilters).length + (this._searchEnabled && this._searchText.trim() ? 1 : 0);
       btn.textContent = count > 0 ? `\u22c2 Filter (${count})` : '\u22c2 Filter';
       btn.classList.toggle('filter-btn--active', count > 0);
     },
@@ -781,6 +930,11 @@
         if (!activeSet.size) continue;
         const val = this._cardFilters[card.id]?.[groupId];
         if (!val || !activeSet.has(val)) return false;
+      }
+      if (this._searchEnabled && this._searchText.trim()) {
+        const q = this._searchText.trim().toLowerCase();
+        const hay = ((card.title || '') + ' ' + (card.body || '') + ' ' + (card.tag || '')).toLowerCase();
+        if (!hay.includes(q)) return false;
       }
       return true;
     },
@@ -803,6 +957,14 @@
         .replace(/"/g, '&quot;');
     },
 
+    setTextSearchEnabled(enabled) {
+      this._searchEnabled = !!enabled;
+      this._searchText = '';
+      this._rebuildFilterPanel();
+      this._applyFilters();
+      this._updateFilterBadge();
+    },
+
     setBoardBackgroundColor(hex) {
       document.body.style.backgroundColor = hex;
       document.getElementById('board').style.backgroundColor = hex;
@@ -819,20 +981,23 @@
     kanban._hideContextMenu();
     const p = document.getElementById('filter-panel');
     if (p) p.classList.remove('filter-panel--open');
+    const d = document.getElementById('view-dropdown');
+    if (d) d.classList.remove('view-dropdown--open');
   });
-  document.addEventListener('contextmenu',  e  => {
+  document.addEventListener('contextmenu', e => {
     // Only dismiss if the right-click was NOT on a card (cards call stopPropagation)
     kanban._hideContextMenu();
   });
 
   window.kanban = kanban;
 
-  function sendReady() {
+  function sendReady(attempts) {
+    if (attempts > 100) return;
     try {
       window.chrome.webview.postMessage(JSON.stringify({ type: 'ready' }));
     } catch (e) {
-      setTimeout(sendReady, 50);
+      setTimeout(() => sendReady(attempts + 1), 50);
     }
   }
-  sendReady();
+  sendReady(0);
 })();

@@ -52,11 +52,35 @@ namespace GenericKanban
             new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
 
         // ----------------------------------------------------------------
+        // Dependency isolation -- load our managed deps from a private
+        // subfolder so version conflicts with other COM controls are avoided.
+        // AssemblyResolve fires when .NET cannot find an exact version via
+        // normal probing; we redirect it to GenericKanban\ next to our DLL.
+        // ----------------------------------------------------------------
+
+        private static readonly string _dllDir =
+            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+            ?? AppDomain.CurrentDomain.BaseDirectory;
+
+        static GenericKanbanControl()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
+        }
+
+        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var simpleName = new AssemblyName(args.Name).Name;
+            var path = Path.Combine(_dllDir, "GenericKanban", simpleName + ".dll");
+            return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+        }
+
+        // ----------------------------------------------------------------
         // Loading panel - visible during WebView2 cold-start
         // ----------------------------------------------------------------
 
         private Panel _loadingPanel;
         private Label _loadingLabel;
+        private System.Drawing.Font _loadingFont;
 
         // ----------------------------------------------------------------
         // Construction
@@ -73,10 +97,11 @@ namespace GenericKanban
                 BackColor = System.Drawing.Color.FromArgb(240, 242, 245)
             };
 
+            _loadingFont  = new System.Drawing.Font("Segoe UI", 11f);
             _loadingLabel = new Label
             {
                 Text      = "Loading\u2026",
-                Font      = new System.Drawing.Font("Segoe UI", 11f),
+                Font      = _loadingFont,
                 ForeColor = System.Drawing.Color.FromArgb(94, 108, 132),
                 AutoSize  = true
             };
@@ -110,21 +135,20 @@ namespace GenericKanban
                 Controls.Add(_webView);
                 _webView.SendToBack(); // keep loading panel on top during init
 
-                var dllDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
                 // Use %TEMP% for the user-data folder.
                 // %TEMP% is always local, always writable, and is per-user in Citrix
                 // multi-session environments â€” avoiding both network-share slowness
                 // and multi-user folder conflicts.
                 var userDataPath = Path.Combine(
-                    Path.GetTempPath(), "GenericKanban_WebView2Data");
+                    Path.GetTempPath(),
+                    $"GenericKanban_WebView2Data_{System.Diagnostics.Process.GetCurrentProcess().Id}_{Handle}");
 
                 var env = await CoreWebView2Environment.CreateAsync(null, userDataPath);
                 await _webView.EnsureCoreWebView2Async(env);
 
                 _webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
                     "localapp.generickanban",
-                    Path.Combine(dllDir, "wwwroot", "controls", "generickanban"),
+                    Path.Combine(_dllDir, "wwwroot", "controls", "generickanban"),
                     CoreWebView2HostResourceAccessKind.Allow);
 
                 _webView.CoreWebView2.Settings.AreDevToolsEnabled             = false;
@@ -160,7 +184,7 @@ namespace GenericKanban
                     case "ready":
                         _pageReady = true;
                         foreach (var s in _pending)
-                            _webView.CoreWebView2.ExecuteScriptAsync(s);
+                            _ = _webView.CoreWebView2.ExecuteScriptAsync(s);
                         _pending.Clear();
 
                         // Board is ready and all queued setup scripts have been sent â€”
@@ -168,7 +192,8 @@ namespace GenericKanban
                         if (_loadingPanel != null)
                             _loadingPanel.Visible = false;
 
-                        try { PageReady?.Invoke(); } catch { }
+                        try { PageReady?.Invoke(); }
+                        catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban PageReady event sink error: {0}", ex); }
                         break;
 
                     case "CardMoved":
@@ -177,28 +202,47 @@ namespace GenericKanban
                         var toColumn   = (string)msg["toColumn"];
                         if (cardId != null)
                             _cardColumn[cardId] = toColumn ?? "";
-                        try { CardMoved?.Invoke(cardId, fromColumn, toColumn); } catch { }
+                        try { CardMoved?.Invoke(cardId, fromColumn, toColumn); }
+                        catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban CardMoved event sink error: {0}", ex); }
                         break;
 
                     case "ContextMenuSelected":
                         var ctxCardId = (string)msg["cardId"];
                         var itemId    = (string)msg["itemId"];
-                        try { ContextMenuSelected?.Invoke(ctxCardId, itemId); } catch { }
+                        try { ContextMenuSelected?.Invoke(ctxCardId, itemId); }
+                        catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban ContextMenuSelected event sink error: {0}", ex); }
                         break;
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban OnWebMessage parse error: {0}", ex); }
         }
 
         // ----------------------------------------------------------------
         // Helpers: script execution
         // ----------------------------------------------------------------
 
+        // Marshal an action to the UI thread; no-op if handle not yet created or disposed.
+        private void RunOnUIThread(Action action)
+        {
+            if (InvokeRequired)
+            {
+                if (!IsHandleCreated || IsDisposed) return;
+                BeginInvoke(action);
+                return;
+            }
+            action();
+        }
+
         private void Exec(string script)
         {
-            if (InvokeRequired) { BeginInvoke(new Action<string>(Exec), script); return; }
+            if (InvokeRequired)
+            {
+                if (!IsHandleCreated || IsDisposed) return;
+                BeginInvoke(new Action<string>(Exec), script);
+                return;
+            }
             if (_pageReady && _webView?.CoreWebView2 != null)
-                _webView.CoreWebView2.ExecuteScriptAsync(script);
+                _ = _webView.CoreWebView2.ExecuteScriptAsync(script);
             else
                 _pending.Add(script);
         }
@@ -220,17 +264,28 @@ namespace GenericKanban
 
         public void RemoveColumn(string columnId)
         {
-            Exec($"kanban.removeColumn({J(columnId)})");
-            var toRemove = new List<string>();
-            foreach (var kv in _cardColumn)
-                if (kv.Value == columnId) toRemove.Add(kv.Key);
-            foreach (var id in toRemove) _cardColumn.Remove(id);
+            RunOnUIThread(() =>
+            {
+                Exec($"kanban.removeColumn({J(columnId)})");
+                var toRemove = new List<string>();
+                foreach (var kv in _cardColumn)
+                    if (kv.Value == columnId) toRemove.Add(kv.Key);
+                foreach (var id in toRemove)
+                {
+                    _cardColumn.Remove(id);
+                    _radioValues.Remove(id);
+                }
+            });
         }
 
         public void ClearColumns()
         {
-            Exec("kanban.clearColumns()");
-            _cardColumn.Clear();
+            RunOnUIThread(() =>
+            {
+                Exec("kanban.clearColumns()");
+                _cardColumn.Clear();
+                _radioValues.Clear();
+            });
         }
 
         public void SetColumnHeaderColor(string columnId, int color)
@@ -241,6 +296,21 @@ namespace GenericKanban
         public void SetColumnHeaderTextColor(string columnId, int color)
         {
             Exec($"kanban.setColumnHeaderTextColor({J(columnId)},{J(ColorToHex(color))})");
+        }
+
+        public void SetAllColumnHeaderTextColor(int color)
+        {
+            Exec($"kanban.setAllColumnHeaderTextColor({J(ColorToHex(color))})");
+        }
+
+        public void SetDarkMode(int enabled)
+        {
+            Exec($"kanban.setDarkMode({(enabled != 0 ? "true" : "false")})");
+        }
+
+        public void SetTextSearchEnabled(int enabled)
+        {
+            Exec($"kanban.setTextSearchEnabled({(enabled != 0 ? "true" : "false")})");
         }
 
         public void SetColumnBodyColor(string columnId, int color)
@@ -254,23 +324,37 @@ namespace GenericKanban
 
         public void AddCard(string cardId, string columnId, string title, string body)
         {
-            Exec($"kanban.addCard({J(cardId)},{J(columnId)},{J(title)},{J(body)})");
-            _cardColumn[cardId] = columnId;
+            RunOnUIThread(() =>
+            {
+                Exec($"kanban.addCard({J(cardId)},{J(columnId)},{J(title)},{J(body)})");
+                _cardColumn[cardId] = columnId;
+            });
         }
 
         public void RemoveCard(string cardId)
         {
-            Exec($"kanban.removeCard({J(cardId)})");
-            _cardColumn.Remove(cardId);
+            RunOnUIThread(() =>
+            {
+                Exec($"kanban.removeCard({J(cardId)})");
+                _cardColumn.Remove(cardId);
+                _radioValues.Remove(cardId);
+            });
         }
 
         public void ClearColumnCards(string columnId)
         {
-            Exec($"kanban.clearColumnCards({J(columnId)})");
-            var toRemove = new List<string>();
-            foreach (var kv in _cardColumn)
-                if (kv.Value == columnId) toRemove.Add(kv.Key);
-            foreach (var id in toRemove) _cardColumn.Remove(id);
+            RunOnUIThread(() =>
+            {
+                Exec($"kanban.clearColumnCards({J(columnId)})");
+                var toRemove = new List<string>();
+                foreach (var kv in _cardColumn)
+                    if (kv.Value == columnId) toRemove.Add(kv.Key);
+                foreach (var id in toRemove)
+                {
+                    _cardColumn.Remove(id);
+                    _radioValues.Remove(id);
+                }
+            });
         }
 
         public string GetCardColumn(string cardId)
@@ -402,10 +486,13 @@ namespace GenericKanban
 
         public void SetCardRadioValue(string cardId, string groupId, string itemId)
         {
-            if (!_radioValues.ContainsKey(cardId))
-                _radioValues[cardId] = new Dictionary<string, string>(StringComparer.Ordinal);
-            _radioValues[cardId][groupId] = itemId ?? "";
-            Exec($"kanban.setCardRadioValue({J(cardId)},{J(groupId)},{J(itemId)})");
+            RunOnUIThread(() =>
+            {
+                if (!_radioValues.ContainsKey(cardId))
+                    _radioValues[cardId] = new Dictionary<string, string>(StringComparer.Ordinal);
+                _radioValues[cardId][groupId] = itemId ?? "";
+                Exec($"kanban.setCardRadioValue({J(cardId)},{J(groupId)},{J(itemId)})");
+            });
         }
 
         public string GetCardRadioValue(string cardId, string groupId)
@@ -452,7 +539,10 @@ namespace GenericKanban
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 _webView?.Dispose();
+                _loadingFont?.Dispose();
+            }
             base.Dispose(disposing);
         }
     }

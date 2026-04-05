@@ -216,5 +216,19 @@ namespace GenericKanban
         /// </summary>
         [DispId(38)]
         void SetCardFilterValue(string cardId, string groupId, string itemId);
+
+        // -- Board-level helpers ---------------------------------------------
+
+        /// <summary>Sets the header text colour for all columns in one call.</summary>
+        [DispId(39)]
+        void SetAllColumnHeaderTextColor(int color);
+
+        /// <summary>Toggles dark mode. Pass 1 to enable, 0 to disable.</summary>
+        [DispId(40)]
+        void SetDarkMode(int enabled);
+
+        /// <summary>Enable or disable the text search input in the filter panel (default: enabled).</summary>
+        [DispId(41)]
+        void SetTextSearchEnabled(int enabled);
     }
 }
