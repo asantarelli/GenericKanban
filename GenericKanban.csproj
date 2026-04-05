@@ -56,7 +56,7 @@
           DestinationFiles="$(ProjectDir)Clarion\accessory\bin\$(AssemblyName).dll"
           SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).manifest"
-          DestinationFiles="$(ProjectDir)Clarion\accessory\resources\$(AssemblyName).manifest"
+          DestinationFiles="$(ProjectDir)Clarion\accessory\bin\$(AssemblyName).manifest"
           SkipUnchangedFiles="true"
           Condition="Exists('$(OutputPath)$(AssemblyName).manifest')" />
     <Message Text="Deployed to $(ProjectDir)Clarion\accessory\" Importance="high" />

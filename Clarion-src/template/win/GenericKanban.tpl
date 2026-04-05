@@ -143,11 +143,8 @@ INCLUDE('KanbanWrapper.inc'),ONCE
     #CALL(%gkCopyFile,'GenericKanban.dll','')
     #CALL(%gkCopyFile,'GenericKanban.manifest','')
     #CALL(%gkCopyFile,'WebView2Loader.dll','')
-    #! Managed dependencies - go in private GenericKanban\ subfolder
-    #CALL(%gkCopyFile,'Microsoft.Web.WebView2.Core.dll','GenericKanban')
-    #CALL(%gkCopyFile,'Microsoft.Web.WebView2.WinForms.dll','GenericKanban')
-    #CALL(%gkCopyFile,'Microsoft.Web.WebView2.Wpf.dll','GenericKanban')
-    #CALL(%gkCopyFile,'Newtonsoft.Json.dll','GenericKanban')
+    #! Managed dependencies - private subfolder (BIN\GenericKanban\ -> app\GenericKanban\)
+    #CALL(%gkCopyFolder,'BIN\GenericKanban','GenericKanban')
     #! wwwroot resources (app.js, index.html, styles.css, sortable.min.js)
     #CALL(%gkCopyFolder,'resources\wwwroot\controls\generickanban','wwwroot\controls\generickanban')
   #ENDIF
