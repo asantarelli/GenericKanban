@@ -4,6 +4,50 @@
 #GROUP(%ReadGlobal,%pa,%force)
   #INSERT(%SetFamily)
   #insert(%ReadClassesPR,'KanbanWrapper.inc',%pa,%force)
+
+#! ---------------------------------------------------------------------------
+#! %CopyFile - Copy a single file from Accessory\BIN to the project folder.
+#!   %pFilename  : filename (e.g. 'GenericKanban.dll')
+#!   %pSubFolder : destination subfolder relative to app folder, or '' for root
+#! ---------------------------------------------------------------------------
+#GROUP(%gkCopyFile,%pFilename,%pSubFolder),AUTO
+#DECLARE(%gkSrcPath)
+#DECLARE(%gkDestPath)
+#! Remove stale copy from app root (in case layout changed)
+#REMOVE(FULLNAME('.\'&%pFilename))
+#! Locate source in Accessory\BIN
+#SET(%gkSrcPath,%CWRoot&'Accessory\BIN\'&%pFilename)
+#IF(NOT FILEEXISTS(%gkSrcPath))
+  #ERROR('GenericKanban: File "'& %gkSrcPath &'" not found. Ensure GenericKanban is installed.')
+  #RETURN
+#ENDIF
+#! Build destination path
+#IF(%pSubFolder='')
+  #SET(%gkDestPath,FULLNAME('.\')&%pFilename)
+#ELSE
+  #SET(%gkDestPath,FULLNAME('.\')&%pSubFolder&'\'&%pFilename)
+  #! Ensure subfolder exists
+  #RUN('cmd.exe /c if not exist "'&FULLNAME('.\')&%pSubFolder&'" mkdir "'&FULLNAME('.\')&%pSubFolder&'"'),WAIT
+#ENDIF
+#RUN('cmd.exe /c echo f | xcopy "'& %gkSrcPath &'" "'& %gkDestPath &'" /D /Y'),WAIT
+
+#! ---------------------------------------------------------------------------
+#! %CopyFolder - Copy an entire folder tree from Accessory\<pSrcRel> to the
+#!              project folder at <pDestRel>.
+#!   %pSrcRel  : path relative to %CWRoot&'Accessory\' (e.g. 'resources\wwwroot')
+#!   %pDestRel : destination path relative to app folder (e.g. 'wwwroot')
+#! ---------------------------------------------------------------------------
+#GROUP(%gkCopyFolder,%pSrcRel,%pDestRel),AUTO
+#DECLARE(%gkFolderSrc)
+#DECLARE(%gkFolderDest)
+#SET(%gkFolderSrc,%CWRoot&'Accessory\'&%pSrcRel)
+#SET(%gkFolderDest,FULLNAME('.\')&%pDestRel)
+#IF(NOT FILEEXISTS(%gkFolderSrc))
+  #ERROR('GenericKanban: Folder "'& %gkFolderSrc &'" not found. Ensure GenericKanban is installed.')
+  #RETURN
+#ENDIF
+#RUN('cmd.exe /c xcopy "'& %gkFolderSrc &'" "'& %gkFolderDest &'" /D /E /I /Y /Q'),WAIT
+
 #Extension(GenericKanbanGlobal,'GenericKanban (Global)'),APPLICATION
 #SHEET
   #TAB('General')
@@ -14,6 +58,9 @@
           #PROMPT('Export KanbanWrapper Class from this DLL',CHECK),%RootDLL,AT(10)
         #ENDENABLE
       #ENDENABLE
+    #ENDBOXED
+    #BOXED('Deployment')
+      #PROMPT('Do not copy DLLs and resources to project folder',CHECK),%gkDoNotCopy,DEFAULT(0),AT(10)
     #ENDBOXED
   #ENDTAB
   #TAB('Classes')
@@ -90,6 +137,20 @@ INCLUDE('KanbanWrapper.inc'),ONCE
 #ENDAT
 #AT(%CustomGlobalDeclarations)
   #INSERT(%Defines,1,'KanBanWrapperLinkMode','KanBanWrapperDLLMode',%MultiDLL,%RootDLL)
+  #! Copy DLLs and resources to project folder (unless opted out)
+  #IF(%gkDoNotCopy=0)
+    #! COM entry point and native loader - go in app root
+    #CALL(%gkCopyFile,'GenericKanban.dll','')
+    #CALL(%gkCopyFile,'GenericKanban.manifest','')
+    #CALL(%gkCopyFile,'WebView2Loader.dll','')
+    #! Managed dependencies - go in private GenericKanban\ subfolder
+    #CALL(%gkCopyFile,'Microsoft.Web.WebView2.Core.dll','GenericKanban')
+    #CALL(%gkCopyFile,'Microsoft.Web.WebView2.WinForms.dll','GenericKanban')
+    #CALL(%gkCopyFile,'Microsoft.Web.WebView2.Wpf.dll','GenericKanban')
+    #CALL(%gkCopyFile,'Newtonsoft.Json.dll','GenericKanban')
+    #! wwwroot resources (app.js, index.html, styles.css, sortable.min.js)
+    #CALL(%gkCopyFolder,'resources\wwwroot\controls\generickanban','wwwroot\controls\generickanban')
+  #ENDIF
 #ENDAT
 #AT(%mpDefineAll)
 #INSERT(%Defines,2,'KanBanWrapperLinkMode','KanBanWrapperDLLMode',%MultiDLL,%RootDLL)
