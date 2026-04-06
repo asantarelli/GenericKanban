@@ -76,7 +76,7 @@
       #PROMPT('Do not copy DLLs and resources to project folder',CHECK),%gkDoNotCopy,DEFAULT(0),AT(10)
       #ENABLE(%gkDoNotCopy=0)
         #PROMPT('Output subdirectory (leave blank if EXE/DLL is in app folder):',@S100),%gkOutputDir,DEFAULT(''),AT(10)
-        #PROMPT('e.g. enter  build  if your EXE/DLL goes to a ''build'' subfolder',@S1),%gkOutputDirHint,DEFAULT(''),DISABLE,AT(10)
+        #DISPLAY('e.g. enter  build  if your EXE/DLL goes to a ''build'' subfolder'),AT(10,,250)
       #ENDENABLE
     #ENDBOXED
   #ENDTAB
