@@ -100,7 +100,7 @@
 #ATEND
   #INSERT(%EndGlobal)
 #ENDAT
-#AT(%AfterGeneratedApplication),WHERE(%ProgramExtension='EXE')
+#AT(%AfterGenerateXPManifest),WHERE(%ProgramExtension='EXE')
 #DECLARE(%gkManifestFile)
 #SET(%gkManifestFile,%ProjectTarget & '.manifest')
 #IF(FILEEXISTS(%gkManifestFile))
@@ -108,15 +108,21 @@
 #DECLARE(%gkCount)
 #DECLARE(%gkLine)
 #DECLARE(%gkLines),MULTI
+#DECLARE(%gkAlreadyPresent)
+#SET(%gkAlreadyPresent,0)
 #LOOP
   #SET(%gkCount,%gkCount+1)
   #READ(%gkLine)
   #IF(%gkLine = %EOF)
     #BREAK
   #ENDIF
+  #IF(INSTRING('name="GenericKanban"',%gkLine,1,1)>0)
+    #SET(%gkAlreadyPresent,1)
+  #ENDIF
   #ADD(%gkLines,%gkLine,%gkCount)
 #ENDLOOP
 #CLOSE(%gkManifestFile),READ
+#IF(%gkAlreadyPresent=0)
 #REMOVE(%gkManifestFile)
 #OPEN(%gkManifestFile)
 #FOR(%gkLines)
@@ -136,6 +142,7 @@
   #ENDIF
 #ENDFOR
 #CLOSE(%gkManifestFile)
+#ENDIF
 #ENDIF
 #ENDAT
 #AT(%BeforeGlobalIncludes)
