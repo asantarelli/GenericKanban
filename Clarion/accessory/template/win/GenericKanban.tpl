@@ -92,9 +92,9 @@
   #IF(VAREXISTS(%GenerateXPManifest))
     #SET(%GenerateXPManifest,1)
   #ENDIF
-  #IF(VAREXISTS(%LinkGenerateXPManifest))
-    #SET(%LinkGenerateXPManifest,0)
-  #ENDIF
+  #!  #IF(VAREXISTS(%LinkGenerateXPManifest))
+  #!    #SET(%LinkGenerateXPManifest,0)
+  #!  #ENDIF
   #INSERT(%ReadGlobal,2,0)
 #ENDAT
 #ATEND
