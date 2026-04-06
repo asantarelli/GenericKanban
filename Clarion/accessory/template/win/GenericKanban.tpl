@@ -101,53 +101,42 @@
   #INSERT(%EndGlobal)
 #ENDAT
 #AT(%AfterGenerateXPManifest),WHERE(%ProgramExtension='EXE')
-#DECLARE(%gkManifestFile)
-#SET(%gkManifestFile,%ProjectTarget & '.manifest')
-#IF(FILEEXISTS(%gkManifestFile))
-#DECLARE(%gkLine)
-#DECLARE(%gkLines),MULTI
-#DELETE(%gkLines)
-#DECLARE(%gkAlreadyPresent)
-#SET(%gkAlreadyPresent,0)
-#OPEN(%gkManifestFile),READ
+#DECLARE(%gkManifestBuffer)
+#DECLARE(%gkManifestDependencyLineNo)
+#DECLARE(%gkManifestLines),MULTI
+#DECLARE(%gkManifestLinesContent,%gkManifestLines)
+#DECLARE(%gkManifestLineCount)
+#FREE(%gkManifestLines)
+#SET(%gkManifestLineCount,0)
+#OPEN(%ExportFile),READ
 #LOOP
-  #READ(%gkLine)
-  #IF(%gkLine = %EOF)
+  #READ(%gkManifestBuffer)
+  #IF(%gkManifestBuffer=%EOF)
     #BREAK
   #ENDIF
-  #IF(INSTRING('name="GenericKanban"',%gkLine,1,1)>0)
-    #SET(%gkAlreadyPresent,1)
+  #ADD(%gkManifestLines,ITEMS(%gkManifestLines)+1)
+  #SET(%gkManifestLinesContent,%gkManifestBuffer)
+  #SET(%gkManifestLineCount,%gkManifestLineCount+1)
+  #IF(INSTRING('</dependency>',%gkManifestBuffer,1,1)>0)
+    #SET(%gkManifestDependencyLineNo,%gkManifestLineCount)
   #ENDIF
-  #ADD(%gkLines,%gkLine)
 #ENDLOOP
-#CLOSE(%gkManifestFile),READ
-#IF(%gkAlreadyPresent=0)
-#REMOVE(%gkManifestFile)
-#OPEN(%gkManifestFile)
-#DECLARE(%gkInjected)
-#SET(%gkInjected,0)
-#FOR(%gkLines)
-%gkLines
-  #IF(INSTRING('</dependency>',%gkLines,1,1)>0)
-    #IF(%gkInjected=0)
+#CLOSE(%ExportFile),READ
+#SET(%gkManifestLineCount,0)
+#CREATE(%BuildFile)
+#FOR(%gkManifestLines)
+%gkManifestLinesContent
+  #SET(%gkManifestLineCount,%gkManifestLineCount+1)
+  #IF(%gkManifestLineCount=%gkManifestDependencyLineNo)
 <dependency>
   <dependentAssembly>
-    <assemblyIdentity
-      type="win32"
-      name="GenericKanban"
-      version="1.0.0.0"
-      processorArchitecture="x86"
-      language="*"
-    />
+    <assemblyIdentity name="GenericKanban" version="1.0.0.0" processorArchitecture="x86" type="win32"/>
   </dependentAssembly>
 </dependency>
-      #SET(%gkInjected,1)
-    #ENDIF
   #ENDIF
 #ENDFOR
-#CLOSE(%gkManifestFile)
-#ENDIF
-#ENDIF
+#CLOSE(%BuildFile)
+#REPLACE(%ExportFile,%BuildFile)
 #ENDAT
 #AT(%BeforeGlobalIncludes)
 INCLUDE('KanbanWrapper.inc'),ONCE
