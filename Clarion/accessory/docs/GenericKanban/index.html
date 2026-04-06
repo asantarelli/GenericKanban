@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GenericKanban â€” Clarion COM Control Documentation</title>
+  <title>GenericKanban — Clarion COM Control Documentation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -36,7 +36,7 @@
     html { scroll-behavior: smooth; font-size: 15px; }
     body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.65; display: flex; }
 
-    /* â”€â”€ Sidebar â”€â”€ */
+    /* ── Sidebar ── */
     nav {
       position: fixed; top: 0; left: 0; width: var(--nav-w); height: 100vh;
       background: var(--bg-nav); border-right: 1px solid var(--border);
@@ -60,10 +60,10 @@
     nav a.active { color: var(--accent-light); border-left-color: var(--accent); background: var(--accent-dim); }
     nav a.sub { padding-left: 2rem; font-size: .78rem; }
 
-    /* â”€â”€ Main â”€â”€ */
+    /* ── Main ── */
     main { margin-left: var(--nav-w); padding: 2.5rem 3rem 5rem; max-width: 960px; width: 100%; }
 
-    /* â”€â”€ Typography â”€â”€ */
+    /* ── Typography ── */
     h1 { font-size: 2.1rem; font-weight: 700; letter-spacing: -.03em; color: #fff; }
     h2 { font-size: 1.35rem; font-weight: 700; color: #fff; margin: 3rem 0 1rem;
          padding-top: 1rem; border-top: 1px solid var(--border); letter-spacing: -.01em; }
@@ -78,7 +78,7 @@
     a:hover { text-decoration: underline; }
     hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
 
-    /* â”€â”€ Hero â”€â”€ */
+    /* ── Hero ── */
     .hero {
       background: linear-gradient(135deg, #1e2a3a 0%, #0f1117 60%);
       border: 1px solid var(--border); border-radius: var(--radius);
@@ -97,18 +97,18 @@
     .badge-purple { background: rgba(168,85,247,.12);  color: #d8b4fe; border: 1px solid rgba(168,85,247,.3); }
     .badge-orange { background: rgba(249,115,22,.12);  color: #fdba74; border: 1px solid rgba(249,115,22,.3); }
 
-    /* â”€â”€ Cards â”€â”€ */
+    /* ── Cards ── */
     .card {
       background: var(--bg-card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem;
     }
     .card h3 { margin-top: 0; }
 
-    /* â”€â”€ Grid â”€â”€ */
+    /* ── Grid ── */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
     @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
 
-    /* â”€â”€ Code â”€â”€ */
+    /* ── Code ── */
     pre {
       background: var(--bg-code); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 1.1rem 1.25rem; overflow-x: auto;
@@ -120,7 +120,7 @@
       border-radius: 4px; font-family: var(--mono); font-size: .82em; color: #e2e8f0;
     }
 
-    /* â”€â”€ API Table â”€â”€ */
+    /* ── API Table ── */
     .api-table { width: 100%; border-collapse: collapse; margin: .75rem 0 1.5rem; font-size: .82rem; }
     .api-table th {
       background: rgba(255,255,255,.04); border: 1px solid var(--border);
@@ -133,7 +133,7 @@
     .api-table .ret { font-family: var(--mono); color: var(--green); font-size: .76rem; }
     .api-table .desc { color: var(--text-muted); }
 
-    /* â”€â”€ Method signature blocks â”€â”€ */
+    /* ── Method signature blocks ── */
     .method-block {
       background: var(--bg-card); border: 1px solid var(--border);
       border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0;
@@ -142,7 +142,7 @@
     .method-block .msig { font-family: var(--mono); font-size: .83rem; color: var(--accent-light); }
     .method-block .mdesc { font-size: .82rem; color: var(--text-muted); margin-top: .35rem; }
 
-    /* â”€â”€ Steps â”€â”€ */
+    /* ── Steps ── */
     .steps { counter-reset: step; list-style: none; margin: 0 0 1rem; padding: 0; }
     .steps li {
       counter-increment: step; display: flex; gap: .85rem; align-items: flex-start;
@@ -158,7 +158,7 @@
     .steps .step-title { font-weight: 600; color: var(--text); margin-bottom: .2rem; font-size: .9rem; }
     .steps .step-body  { color: var(--text-muted); font-size: .83rem; }
 
-    /* â”€â”€ Callout â”€â”€ */
+    /* ── Callout ── */
     .callout {
       border-radius: var(--radius); padding: .85rem 1.1rem; margin: 1rem 0;
       font-size: .85rem; display: flex; gap: .7rem; align-items: flex-start;
@@ -169,17 +169,17 @@
     .callout-warn  { background: rgba(234,179,8,.08);  border: 1px solid rgba(234,179,8,.25);  color: #fde68a; }
     .callout-tip   { background: rgba(34,197,94,.08);  border: 1px solid rgba(34,197,94,.25);  color: #86efac; }
 
-    /* â”€â”€ Section anchor offset â”€â”€ */
+    /* ── Section anchor offset ── */
     section { scroll-margin-top: 1.5rem; }
   </style>
 </head>
 <body>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• SIDEBAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
 <nav id="sidebar">
   <div class="nav-header">
-    <div class="logo">ðŸ“‹ GenericKanban</div>
-    <div class="version">v1.0.0 Â· Clarion COM Control</div>
+    <div class="logo">📋 GenericKanban</div>
+    <div class="version">v1.0.0 · Clarion COM Control</div>
   </div>
 
   <div class="nav-section">Getting Started</div>
@@ -218,7 +218,7 @@
   <a href="#ex-extend">Extending the Class</a>
 </nav>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MAIN â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════════ MAIN ═══════════════ -->
 <main>
 
   <!-- Hero -->
@@ -238,7 +238,7 @@
 
     <div class="grid-2">
       <div class="card">
-        <h3>ðŸš€ What it does</h3>
+        <h3>🚀 What it does</h3>
         <ul>
           <li>Drag-and-drop card movement between columns</li>
           <li>Rich card metadata: tags, assignees, due dates, progress</li>
@@ -249,9 +249,9 @@
         </ul>
       </div>
       <div class="card">
-        <h3>ðŸ”§ How it works</h3>
+        <h3>🔧 How it works</h3>
         <ul>
-          <li>Registration-free COM â€” no registry entries required</li>
+          <li>Registration-free COM — no registry entries required</li>
           <li>Renders in an embedded WebView2 browser control</li>
           <li>Events routed via thread-safe queue + <code>POST()</code></li>
           <li>Single <code>KanbanWrapperClass</code> object per board instance</li>
@@ -283,10 +283,10 @@
     <pre><code>Clarion11.1\
   Accessory\
     BIN\
-      GenericKanban.dll        â† COM control entry point
-      GenericKanban.manifest   â† Registration-free COM manifest
-      WebView2Loader.dll       â† WebView2 native loader
-      GenericKanban\           â† Managed .NET dependencies
+      GenericKanban.dll        ← COM control entry point
+      GenericKanban.manifest   ← Registration-free COM manifest
+      WebView2Loader.dll       ← WebView2 native loader
+      GenericKanban\           ← Managed .NET dependencies
         Microsoft.Web.WebView2.Core.dll
         Microsoft.Web.WebView2.WinForms.dll
         Microsoft.Web.WebView2.Clarion.dll
@@ -302,9 +302,9 @@
     template\win\
       GenericKanban.tpl
     docs\GenericKanban\
-      index.html               â† this file</code></pre>
+      index.html               ← this file</code></pre>
     <div class="callout callout-info">
-      <span class="callout-icon">â„¹ï¸</span>
+      <span class="callout-icon">ℹ️</span>
       <p>The template automatically copies all required files to your project's output folder on each code generation. You do not need to copy them manually to your app folder.</p>
     </div>
   </section>
@@ -316,19 +316,19 @@
       <li>
         <div>
           <div class="step-title">Add the Global Extension</div>
-          <div class="step-body">In the Clarion App, open Global Properties â†’ Extensions â†’ Add â†’ <strong>GenericKanban (Global)</strong>. Accept defaults unless you need Multi-DLL or a custom output directory.</div>
+          <div class="step-body">In the Clarion App, open Global Properties → Extensions → Add → <strong>GenericKanban (Global)</strong>. Accept defaults unless you need Multi-DLL or a custom output directory.</div>
         </div>
       </li>
       <li>
         <div>
           <div class="step-title">Add the Control Template to a Window</div>
-          <div class="step-body">On any procedure with a window, go to Embeds â†’ Controls â†’ Add Control Template â†’ <strong>GenericKanban Control</strong>. Give the object a name (e.g. <code>MyKanban</code>).</div>
+          <div class="step-body">On any procedure with a window, go to Embeds → Controls → Add Control Template → <strong>GenericKanban Control</strong>. Give the object a name (e.g. <code>MyKanban</code>).</div>
         </div>
       </li>
       <li>
         <div>
           <div class="step-title">Populate the board in the After Init embed</div>
-          <div class="step-body">Code goes in the <em>After Kanban Init</em> embed point under Local Objects â†’ Kanban Objects â†’ <em>YourObjectName</em>.</div>
+          <div class="step-body">Code goes in the <em>After Kanban Init</em> embed point under Local Objects → Kanban Objects → <em>YourObjectName</em>.</div>
         </div>
       </li>
       <li>
@@ -345,7 +345,7 @@
       </li>
     </ol>
 
-    <pre><code class="language-clarion">! â”€â”€ After Kanban Init embed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <pre><code class="language-clarion">! ── After Kanban Init embed ──────────────────────────────────
 ! Add columns
 MyKanban.AddColumn('todo',       'To Do',       COLOR:Blue)
 MyKanban.AddColumn('inprogress', 'In Progress', COLOR:Yellow)
@@ -362,10 +362,10 @@ MyKanban.SetBoardTitle('Project Tracker', 030050080H, 0FFFFFFH)</code></pre>
 
   <!-- Template: Global -->
   <section id="template-global">
-    <h2>Template â€” Global Extension</h2>
+    <h2>Template — Global Extension</h2>
     <p>Add <strong>GenericKanban (Global)</strong> once per application (or per DLL in a Multi-DLL project).</p>
 
-    <h3>General Tab â€” Multi-DLL</h3>
+    <h3>General Tab — Multi-DLL</h3>
     <table class="api-table">
       <thead><tr><th>Prompt</th><th>Default</th><th>Description</th></tr></thead>
       <tbody>
@@ -377,12 +377,12 @@ MyKanban.SetBoardTitle('Project Tracker', 030050080H, 0FFFFFFH)</code></pre>
         <tr>
           <td class="sig">Export KanbanWrapper Class from this DLL</td>
           <td>Off</td>
-          <td class="desc">Only relevant for DLLs in a multi-DLL project. Tick on exactly one DLL â€” the one that owns the class.</td>
+          <td class="desc">Only relevant for DLLs in a multi-DLL project. Tick on exactly one DLL — the one that owns the class.</td>
         </tr>
       </tbody>
     </table>
 
-    <h3>General Tab â€” Deployment</h3>
+    <h3>General Tab — Deployment</h3>
     <table class="api-table">
       <thead><tr><th>Prompt</th><th>Default</th><th>Description</th></tr></thead>
       <tbody>
@@ -400,15 +400,15 @@ MyKanban.SetBoardTitle('Project Tracker', 030050080H, 0FFFFFFH)</code></pre>
     </table>
 
     <div class="callout callout-tip">
-      <span class="callout-icon">ðŸ’¡</span>
-      <p>The template also automatically enables manifest generation and sets up the application manifest to include the <code>GenericKanban</code> registration-free COM dependency â€” no manual manifest editing required.</p>
+      <span class="callout-icon">💡</span>
+      <p>The template also automatically enables manifest generation and sets up the application manifest to include the <code>GenericKanban</code> registration-free COM dependency — no manual manifest editing required.</p>
     </div>
   </section>
 
   <!-- Template: Control -->
   <section id="template-control">
-    <h2>Template â€” Control Template</h2>
-    <p>Add <strong>GenericKanban Control</strong> to any procedure that has a window. Multiple instances on the same window are supported â€” each gets its own object name and event equate.</p>
+    <h2>Template — Control Template</h2>
+    <p>Add <strong>GenericKanban Control</strong> to any procedure that has a window. Multiple instances on the same window are supported — each gets its own object name and event equate.</p>
 
     <table class="api-table">
       <thead><tr><th>Prompt</th><th>Default</th><th>Description</th></tr></thead>
@@ -427,11 +427,11 @@ MyKanban.SetBoardTitle('Project Tracker', 030050080H, 0FFFFFFH)</code></pre>
       <li>An event equate <code><em>ObjectName</em>_Event</code> for routing board events through Clarion's event loop</li>
       <li>A <code>KanbanProcess_<em>ObjectName</em></code> procedure that dispatches events</li>
       <li>The <code>KanbanWrapperClass</code> local object with Init, Kill, and all virtual method stubs</li>
-      <li>An <em>After Kanban Init</em> embed point â€” put your board setup code here</li>
+      <li>An <em>After Kanban Init</em> embed point — put your board setup code here</li>
     </ul>
 
     <h3>Generated embed point</h3>
-    <pre><code class="language-clarion">! Location: Local Objects â†’ Kanban Objects â†’ MyKanban (KanbanWrapperClass) â†’ After Init
+    <pre><code class="language-clarion">! Location: Local Objects → Kanban Objects → MyKanban (KanbanWrapperClass) → After Init
 ! All board setup (AddColumn, AddCard, SetBoardTitle, etc.) goes here.
 MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   </section>
@@ -445,17 +445,17 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
       <tbody>
         <tr>
           <td class="sig">Init(LONG pCtrl)</td>
-          <td class="ret">â€”</td>
+          <td class="ret">—</td>
           <td class="desc">Binds the wrapper to an OLE control FEQ. Allocates the internal status queue. Called at <code>OpenWindow</code>.</td>
         </tr>
         <tr>
           <td class="sig">Kill()</td>
-          <td class="ret">â€”</td>
+          <td class="ret">—</td>
           <td class="desc">Unregisters events, drains queues, frees status queue. Called at <code>CloseWindow</code>.</td>
         </tr>
         <tr>
           <td class="sig">RegisterEvents(SIGNED pOleControl, LONG pPostEvent)</td>
-          <td class="ret">â€”</td>
+          <td class="ret">—</td>
           <td class="desc">Wires the low-level COM event callback and stores the <code>POST()</code> target. Called by <code>Init</code>.</td>
         </tr>
         <tr>
@@ -470,7 +470,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         </tr>
         <tr>
           <td class="sig">ClearEvents()</td>
-          <td class="ret">â€”</td>
+          <td class="ret">—</td>
           <td class="desc">Discards all pending events for this control instance.</td>
         </tr>
       </tbody>
@@ -502,7 +502,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
       <thead><tr><th style="width:50%">Method</th><th>Description</th></tr></thead>
       <tbody>
         <tr><td class="sig">AddCard(pCardId, pColumnId, pTitle, pBody)</td><td class="desc">Adds a card with a title and optional body text.</td></tr>
-        <tr><td class="sig">AddCard(KanbanCardMeta pMeta)</td><td class="desc">Adds a card from a <a href="#ds-cardmeta"><code>KanbanCardMeta</code></a> group â€” the richest way to add a card in one call.</td></tr>
+        <tr><td class="sig">AddCard(KanbanCardMeta pMeta)</td><td class="desc">Adds a card from a <a href="#ds-cardmeta"><code>KanbanCardMeta</code></a> group — the richest way to add a card in one call.</td></tr>
         <tr><td class="sig">RemoveCard(pCardId)</td><td class="desc">Removes a specific card.</td></tr>
         <tr><td class="sig">ClearColumnCards(pColumnId)</td><td class="desc">Removes all cards from a column (keeps the column).</td></tr>
         <tr><td class="sig">GetCardColumn(pCardId)</td><td class="desc">Returns the current column ID of a card. Useful after drag-and-drop to verify state.</td></tr>
@@ -522,7 +522,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetCardTag(pCardId, pLabel, pColor)</td><td class="desc">Sets a coloured badge/tag on the card.</td></tr>
         <tr><td class="sig">SetCardAssignee(pCardId, pAssignee)</td><td class="desc">Sets the assignee name shown on the card.</td></tr>
         <tr><td class="sig">SetCardDueDate(pCardId, pDueDate)</td><td class="desc">Sets the due date string (any format, e.g. <code>'2025-12-31'</code>).</td></tr>
-        <tr><td class="sig">SetCardProgress(pCardId, pProgress)</td><td class="desc">Sets a progress bar (0â€“100). Pass <code>-1</code> to hide the bar.</td></tr>
+        <tr><td class="sig">SetCardProgress(pCardId, pProgress)</td><td class="desc">Sets a progress bar (0–100). Pass <code>-1</code> to hide the bar.</td></tr>
         <tr><td class="sig">SetCardOverdue(pCardId, pOverdue)</td><td class="desc">Pass <code>1</code> to highlight the card as overdue.</td></tr>
         <tr><td class="sig">SetCardStatusBar(pCardId, pLabel, pColor)</td><td class="desc">Sets a coloured status bar at the bottom of the card. <code>pLabel</code> can be blank.</td></tr>
       </tbody>
@@ -566,7 +566,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   <!-- Filters -->
   <section id="api-filters">
     <h2>Filter Panel</h2>
-    <p>The filter panel slides out from the toolbar. Filters hide cards that do not match â€” multiple groups are ANDed together. Text search works independently.</p>
+    <p>The filter panel slides out from the toolbar. Filters hide cards that do not match — multiple groups are ANDed together. Text search works independently.</p>
     <table class="api-table">
       <thead><tr><th style="width:52%">Method</th><th>Description</th></tr></thead>
       <tbody>
@@ -582,7 +582,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   <!-- Status System -->
   <section id="api-status">
     <h2>Status System</h2>
-    <p>The status system is a high-level helper that ties together a colour status bar, a context menu radio group, and a filter group â€” all from a single list of status options. Call these methods in the After Init embed, then call <code>SetCardStatus</code> on individual cards.</p>
+    <p>The status system is a high-level helper that ties together a colour status bar, a context menu radio group, and a filter group — all from a single list of status options. Call these methods in the After Init embed, then call <code>SetCardStatus</code> on individual cards.</p>
     <table class="api-table">
       <thead><tr><th style="width:50%">Method</th><th>Description</th></tr></thead>
       <tbody>
@@ -590,7 +590,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">AddStatusOption(pOptionId, pLabel, pColor)</td><td class="desc">Registers a status value with a label and colour.</td></tr>
         <tr><td class="sig">BuildFilterFromStatus()</td><td class="desc">Creates a filter group from all registered status options. Call after all options are added.</td></tr>
         <tr><td class="sig">BuildMenuFromStatus(pParentId)</td><td class="desc">Creates a context menu radio group from all registered status options. Call after all options are added.</td></tr>
-        <tr><td class="sig">SetCardStatus(pCardId, pOptionId)</td><td class="desc">Sets a card's status â€” simultaneously sets the status bar colour, radio value, and filter value.</td></tr>
+        <tr><td class="sig">SetCardStatus(pCardId, pOptionId)</td><td class="desc">Sets a card's status — simultaneously sets the status bar colour, radio value, and filter value.</td></tr>
       </tbody>
     </table>
   </section>
@@ -644,7 +644,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">TagColor</td><td class="ret">LONG</td><td class="desc">Tag badge colour (Clarion LONG). Ignored if Tag is blank.</td></tr>
         <tr><td class="sig">Assignee</td><td class="ret">STRING(100)</td><td class="desc">Assignee name. Blank = not shown.</td></tr>
         <tr><td class="sig">DueDate</td><td class="ret">STRING(20)</td><td class="desc">Due date string. Blank = not shown.</td></tr>
-        <tr><td class="sig">Progress</td><td class="ret">LONG</td><td class="desc">Progress bar 0â€“100. Set to <code>-1</code> to hide the bar.</td></tr>
+        <tr><td class="sig">Progress</td><td class="ret">LONG</td><td class="desc">Progress bar 0–100. Set to <code>-1</code> to hide the bar.</td></tr>
         <tr><td class="sig">Overdue</td><td class="ret">LONG</td><td class="desc">Set <code>1</code> to highlight as overdue.</td></tr>
         <tr><td class="sig">StatusOption</td><td class="ret">STRING(50)</td><td class="desc">Status option ID from <code>AddStatusOption</code>. Blank = no status.</td></tr>
       </tbody>
@@ -653,7 +653,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
 
   <section id="ds-statusoption">
     <h2>KanbanStatusOption</h2>
-    <p>Internal group type used by the status queue. You do not instantiate this directly â€” it is managed by <code>AddStatusOption</code>.</p>
+    <p>Internal group type used by the status queue. You do not instantiate this directly — it is managed by <code>AddStatusOption</code>.</p>
     <table class="api-table">
       <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
       <tbody>
@@ -664,10 +664,10 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
     </table>
   </section>
 
-  <!-- â•â•â•â• EXAMPLES â•â•â•â• -->
+  <!-- ════ EXAMPLES ════ -->
   <section id="ex-basic">
-    <h2>Example â€” Basic Board</h2>
-    <pre><code class="language-clarion">! â”€â”€ After Kanban Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <h2>Example — Basic Board</h2>
+    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
 MyKanban.AddColumn('backlog',    'Backlog',     0)
 MyKanban.AddColumn('todo',       'To Do',       COLOR:Blue)
 MyKanban.AddColumn('inprogress', 'In Progress', COLOR:Yellow)
@@ -686,8 +686,8 @@ END</code></pre>
   </section>
 
   <section id="ex-cardmeta">
-    <h2>Example â€” Rich Cards with KanbanCardMeta</h2>
-    <pre><code class="language-clarion">! â”€â”€ After Kanban Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <h2>Example — Rich Cards with KanbanCardMeta</h2>
+    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
 CardData    KanbanCardMeta
 
 MyKanban.AddColumn('todo', 'To Do', 0)
@@ -724,9 +724,9 @@ MyKanban.AddCard(CardData)</code></pre>
   </section>
 
   <section id="ex-events">
-    <h2>Example â€” Handling Events</h2>
+    <h2>Example — Handling Events</h2>
     <p>The generated <code>KanbanProcess_MyKanban</code> procedure already calls <code>OnCardMoved</code> and <code>OnContextMenuSelected</code>. Override them in a derived class, or handle inline by overriding the generated stub:</p>
-    <pre><code class="language-clarion">! â”€â”€ Override OnCardMoved in the generated stub â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <pre><code class="language-clarion">! ── Override OnCardMoved in the generated stub ─────────────────
 MyKanban.OnCardMoved  PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColumn)
   CODE
   ! Update your data
@@ -742,7 +742,7 @@ MyKanban.OnCardMoved  PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToCo
     MyKanban.SetCardProgress(pCardId, 100)
   END</code></pre>
 
-    <pre><code class="language-clarion">! â”€â”€ Or handle via a derived class â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <pre><code class="language-clarion">! ── Or handle via a derived class ──────────────────────────────
 MyKanbanClass CLASS(KanbanWrapperClass)
 OnCardMoved     PROCEDURE(STRING pCardId, STRING pFrom, STRING pTo), OVERRIDE
               END
@@ -753,8 +753,8 @@ MyKanbanClass.OnCardMoved PROCEDURE(STRING pCardId, STRING pFrom, STRING pTo)
   </section>
 
   <section id="ex-contextmenu">
-    <h2>Example â€” Context Menu</h2>
-    <pre><code class="language-clarion">! â”€â”€ After Kanban Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <h2>Example — Context Menu</h2>
+    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
 ! Top-level items
 MyKanban.AddContextMenuItem('root', 'edit',   'Edit Card...')
 MyKanban.AddContextMenuItem('root', 'delete', 'Delete Card')
@@ -767,7 +767,7 @@ MyKanban.AddContextMenuItem('move', 'mv_todo',       'To Do')
 MyKanban.AddContextMenuItem('move', 'mv_inprogress', 'In Progress')
 MyKanban.AddContextMenuItem('move', 'mv_done',       'Done')
 
-! â”€â”€ OnContextMenuSelected stub â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+! ── OnContextMenuSelected stub ─────────────────────────────────
 MyKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
   CODE
   CASE CLIP(pActionId)
@@ -784,9 +784,9 @@ MyKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
   </section>
 
   <section id="ex-status">
-    <h2>Example â€” Status System</h2>
+    <h2>Example — Status System</h2>
     <p>The status system ties a colour, a context menu radio button, and a filter option together for each status value. Set it up once in After Init.</p>
-    <pre><code class="language-clarion">! â”€â”€ After Kanban Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
 ! 1. Define status options
 MyKanban.SetStatusTitle('Priority')
 MyKanban.AddStatusOption('low',      'Low',      039D353H)  ! green
@@ -805,7 +805,7 @@ MyKanban.SetCardStatus('card1', 'critical')
 MyKanban.AddCard('card2', 'todo', 'Update docs', 'Developer guide')
 MyKanban.SetCardStatus('card2', 'low')
 
-! â”€â”€ OnContextMenuSelected â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+! ── OnContextMenuSelected ──────────────────────────────────────
 ! Radio group events fire with pActionId = the radio item ID ('low', 'medium', etc.)
 MyKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
   CODE
@@ -817,8 +817,8 @@ MyKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
   </section>
 
   <section id="ex-filters">
-    <h2>Example â€” Custom Filter Groups</h2>
-    <pre><code class="language-clarion">! â”€â”€ After Kanban Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <h2>Example — Custom Filter Groups</h2>
+    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
 ! Team filter
 MyKanban.AddFilterGroup('team', 'Team')
 MyKanban.AddFilterItem('team', 'frontend',  'Frontend',  03498DBH)
@@ -846,8 +846,8 @@ MyKanban.SetCardFilterValue('c2', 'sprint', 'sprint2')</code></pre>
   </section>
 
   <section id="ex-appearance">
-    <h2>Example â€” Dark Mode &amp; Appearance</h2>
-    <pre><code class="language-clarion">! â”€â”€ After Kanban Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <h2>Example — Dark Mode &amp; Appearance</h2>
+    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
 ! Dark mode with a custom board title
 MyKanban.SetDarkMode(1)
 MyKanban.SetBoardTitle('Task Board', 01E1E2EH, 0FFFFFFH)
@@ -870,17 +870,17 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
   </section>
 
   <section id="ex-multidll">
-    <h2>Example â€” Multi-DLL Setup</h2>
+    <h2>Example — Multi-DLL Setup</h2>
     <p>In a multi-DLL application, the <code>KanbanWrapperClass</code> must be exported from exactly one DLL and consumed by all others.</p>
     <div class="callout callout-warn">
-      <span class="callout-icon">âš ï¸</span>
-      <p>Add the <strong>GenericKanban (Global)</strong> extension to <em>every</em> module in the solution â€” both the owning DLL and all consuming DLLs/EXE. Tick <em>Part of a Multi-DLL program</em> on all, and <em>Export KanbanWrapper Class from this DLL</em> on the one that owns it.</p>
+      <span class="callout-icon">⚠️</span>
+      <p>Add the <strong>GenericKanban (Global)</strong> extension to <em>every</em> module in the solution — both the owning DLL and all consuming DLLs/EXE. Tick <em>Part of a Multi-DLL program</em> on all, and <em>Export KanbanWrapper Class from this DLL</em> on the one that owns it.</p>
     </div>
-    <pre><code class="language-clarion">! â”€â”€ Owning DLL â€” Global Extension settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <pre><code class="language-clarion">! ── Owning DLL — Global Extension settings ────────────────────
 ! Part of a Multi-DLL program ............. [x]
 ! Export KanbanWrapper Class from this DLL  [x]
 
-! â”€â”€ Consuming EXE/DLL â€” Global Extension settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+! ── Consuming EXE/DLL — Global Extension settings ─────────────
 ! Part of a Multi-DLL program ............. [x]
 ! Export KanbanWrapper Class from this DLL  [ ]  (leave off!)
 
@@ -888,9 +888,9 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
   </section>
 
   <section id="ex-extend">
-    <h2>Example â€” Extending the Class</h2>
+    <h2>Example — Extending the Class</h2>
     <p>Derive from <code>KanbanWrapperClass</code> to keep your event handling clean and type-safe, and to add domain-specific helpers.</p>
-    <pre><code class="language-clarion">! â”€â”€ YourApp.inc â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    <pre><code class="language-clarion">! ── YourApp.inc ───────────────────────────────────────────────
   INCLUDE('KanbanWrapper.inc'),ONCE
 
 ProjectKanban CLASS(KanbanWrapperClass)
@@ -900,7 +900,7 @@ LoadFromDB              PROCEDURE
 SaveCardColumn          PROCEDURE(STRING pCardId, STRING pColumnId)
                       END
 
-! â”€â”€ YourApp.clw â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+! ── YourApp.clw ───────────────────────────────────────────────
 ProjectKanban.OnCardMoved PROCEDURE(STRING pCardId, STRING pFrom, STRING pTo)
   CODE
   SELF.SaveCardColumn(pCardId, pTo)
@@ -912,7 +912,7 @@ ProjectKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
     SELF.RemoveCard(pCardId)
     ArchiveTask(CLIP(pCardId))
   ELSE
-    ! status radio â€” handled by SetCardStatus
+    ! status radio — handled by SetCardStatus
     SELF.SetCardStatus(pCardId, pActionId)
     SELF.SaveCardColumn(pCardId, SELF.GetCardColumn(pCardId))
   END
