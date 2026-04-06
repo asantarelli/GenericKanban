@@ -363,7 +363,7 @@ MyKanban.SetBoardTitle('Project Tracker', 030050080H, 0FFFFFFH)</code></pre>
   <!-- Template: Global -->
   <section id="template-global">
     <h2>Template — Global Extension</h2>
-    <p>Add <strong>GenericKanban (Global)</strong> once per application (or per DLL in a Multi-DLL project).</p>
+    <p>Add <strong>GenericKanban (Global)</strong> to each app that needs it: the Data DLL (set as owner), the EXE, and any DLL containing a Kanban procedure. Do not add it to unrelated modules.</p>
 
     <h3>General Tab — Multi-DLL</h3>
     <table class="api-table">
@@ -682,9 +682,9 @@ MyKanban.SetBoardTitle('Sprint Board', 0182D40H, 0FFFFFFH)
 
 ! Load cards from a queue
 GET(TaskQ, 1)
-LOOP WHILE NOT ERRORCODE()
+LOOP a = 1 TO RECORDS(TaskQ)
+  GET(TaskQ, a)
   MyKanban.AddCard(TaskQ.Id, TaskQ.Column, TaskQ.Title, TaskQ.Description)
-  NEXT(TaskQ)
 END</code></pre>
   </section>
 
@@ -874,18 +874,26 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
 
   <section id="ex-multidll">
     <h2>Example — Multi-DLL Setup</h2>
-    <p>In a multi-DLL application, the <code>KanbanWrapperClass</code> must be exported from exactly one DLL and consumed by all others.</p>
+    <p>In a multi-DLL application, the <code>KanbanWrapperClass</code> must be exported from exactly one DLL and consumed by all others that need it.</p>
     <div class="callout callout-warn">
       <span class="callout-icon">⚠️</span>
-      <p>Add the <strong>GenericKanban (Global)</strong> extension to <em>every</em> module in the solution — both the owning DLL and all consuming DLLs/EXE. Tick <em>Part of a Multi-DLL program</em> on all, and <em>Export KanbanWrapper Class from this DLL</em> on the one that owns it.</p>
+      <p>Add <strong>GenericKanban (Global)</strong> only to the apps that actually need it — not every module in the solution:</p>
+      <ul style="margin:.5rem 0 0 1.25rem; line-height:1.9">
+        <li><strong>Data DLL</strong> (the root DLL that exports classes) — add the extension and tick <em>Export KanbanWrapper Class from this DLL</em>. This is the owning module.</li>
+        <li><strong>EXE application</strong> that runs the board — add the extension with <em>Part of a Multi-DLL program</em> ticked (Export off).</li>
+        <li><strong>Any other DLL</strong> that contains a procedure using the control — add the extension with <em>Part of a Multi-DLL program</em> ticked (Export off).</li>
+        <li><strong>Other EXEs or DLLs</strong> in the solution that have no Kanban procedures — <em>do not</em> add the extension.</li>
+      </ul>
     </div>
-    <pre><code class="language-clarion">! ── Owning DLL — Global Extension settings ────────────────────
+    <pre><code class="language-clarion">! ── Data DLL (owning module) — Global Extension settings ──────
 ! Part of a Multi-DLL program ............. [x]
 ! Export KanbanWrapper Class from this DLL  [x]
 
-! ── Consuming EXE/DLL — Global Extension settings ─────────────
+! ── EXE / DLL that uses the control — Global Extension settings
 ! Part of a Multi-DLL program ............. [x]
 ! Export KanbanWrapper Class from this DLL  [ ]  (leave off!)
+
+! Other EXEs/DLLs with no Kanban procedures — do not add the extension
 
 ! Usage is identical in all modules once configured:</code></pre>
   </section>
@@ -922,16 +930,15 @@ ProjectKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
 
 ProjectKanban.LoadFromDB PROCEDURE
   CODE
-  ACCESS:Tasks.Open()
-  ACCESS:Tasks.Requery()
-  LOOP WHILE NOT ACCESS:Tasks.Next()
+  LOOP UNTIL ACCESS:Tasks.Next()
     SELF.AddCard(Tasks.Id, Tasks.Column, Tasks.Title, Tasks.Description)
     SELF.SetCardStatus(Tasks.Id, Tasks.Status)
   END
 
 ProjectKanban.SaveCardColumn PROCEDURE(STRING pCardId, STRING pColumnId)
   CODE
-  GET(Tasks, CLIP(pCardId))
+  Tasks.CardID = CLIP(pCardId)
+  GET(Tasks, +Tasks.CardID)
   IF NOT ERRORCODE()
     Tasks.Column = CLIP(pColumnId)
     PUT(Tasks)
