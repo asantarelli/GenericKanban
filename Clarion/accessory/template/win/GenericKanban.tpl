@@ -104,14 +104,13 @@
 #DECLARE(%gkManifestFile)
 #SET(%gkManifestFile,%ProjectTarget & '.manifest')
 #IF(FILEEXISTS(%gkManifestFile))
-#OPEN(%gkManifestFile),READ
-#DECLARE(%gkCount)
 #DECLARE(%gkLine)
 #DECLARE(%gkLines),MULTI
+#DELETE(%gkLines)
 #DECLARE(%gkAlreadyPresent)
 #SET(%gkAlreadyPresent,0)
+#OPEN(%gkManifestFile),READ
 #LOOP
-  #SET(%gkCount,%gkCount+1)
   #READ(%gkLine)
   #IF(%gkLine = %EOF)
     #BREAK
@@ -119,15 +118,18 @@
   #IF(INSTRING('name="GenericKanban"',%gkLine,1,1)>0)
     #SET(%gkAlreadyPresent,1)
   #ENDIF
-  #ADD(%gkLines,%gkLine,%gkCount)
+  #ADD(%gkLines,%gkLine)
 #ENDLOOP
 #CLOSE(%gkManifestFile),READ
 #IF(%gkAlreadyPresent=0)
 #REMOVE(%gkManifestFile)
 #OPEN(%gkManifestFile)
+#DECLARE(%gkInjected)
+#SET(%gkInjected,0)
 #FOR(%gkLines)
 %gkLines
   #IF(INSTRING('</dependency>',%gkLines,1,1)>0)
+    #IF(%gkInjected=0)
 <dependency>
   <dependentAssembly>
     <assemblyIdentity
@@ -139,6 +141,8 @@
     />
   </dependentAssembly>
 </dependency>
+      #SET(%gkInjected,1)
+    #ENDIF
   #ENDIF
 #ENDFOR
 #CLOSE(%gkManifestFile)
