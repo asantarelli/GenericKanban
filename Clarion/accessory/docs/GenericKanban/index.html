@@ -327,8 +327,8 @@
       </li>
       <li>
         <div>
-          <div class="step-title">Populate the board in the After Init embed</div>
-          <div class="step-body">Code goes in the <em>After Kanban Init</em> embed point under Local Objects → Kanban Objects → <em>YourObjectName</em>.</div>
+          <div class="step-title">Populate the board in OnPageReady</div>
+          <div class="step-body">Board population code goes in the <strong>OnPageReady</strong> virtual method — found under Local Objects → Kanban Objects → <em>YourObjectName</em> → <em>OnPageReady</em>. This fires when the WebView2 page has fully loaded and is ready to receive calls. The <em>After Kanban Init</em> embed fires earlier (at OpenWindow, before the page loads) and should only be used for Clarion-side setup that does not call any board methods.</div>
         </div>
       </li>
       <li>
@@ -345,7 +345,7 @@
       </li>
     </ol>
 
-    <pre><code class="language-clarion">! ── After Kanban Init embed ──────────────────────────────────
+    <pre><code class="language-clarion">! ── OnPageReady virtual ──────────────────────────────────────
 ! Add columns
 MyKanban.AddColumn('todo',       'To Do',       COLOR:Blue)
 MyKanban.AddColumn('inprogress', 'In Progress', COLOR:Yellow)
@@ -427,11 +427,14 @@ MyKanban.SetBoardTitle('Project Tracker', 030050080H, 0FFFFFFH)</code></pre>
       <li>An event equate <code><em>ObjectName</em>_Event</code> for routing board events through Clarion's event loop</li>
       <li>A <code>KanbanProcess_<em>ObjectName</em></code> procedure that dispatches events</li>
       <li>The <code>KanbanWrapperClass</code> local object with Init, Kill, and all virtual method stubs</li>
-      <li>An <em>After Kanban Init</em> embed point — put your board setup code here</li>
+      <li>An <em>After Kanban Init</em> embed point — fires at OpenWindow after <code>Init()</code>, for Clarion-side setup only (page not yet loaded)</li>
+      <li>An <em>OnPageReady</em> virtual — fires when the WebView2 page is fully loaded; <strong>put all board population code here</strong></li>
     </ul>
 
-    <h3>Generated embed point</h3>
-    <pre><code class="language-clarion">! Location: Local Objects → Kanban Objects → MyKanban (KanbanWrapperClass) → After Init
+    <h3>Generated embed points</h3>
+    <p><strong>After Kanban Init</strong> — fires at <code>OpenWindow</code> after <code>Init()</code> and <code>RegisterEvents()</code>. The WebView2 page has <em>not</em> loaded yet. Use this only for Clarion-side setup that does not call any board methods.</p>
+    <p><strong>OnPageReady</strong> — fires when the WebView2 page signals it is ready. This is where all board population belongs: <code>AddColumn</code>, <code>AddCard</code>, context menu setup, status options, and appearance calls.</p>
+    <pre><code class="language-clarion">! Location: Local Objects → Kanban Objects → MyKanban (KanbanWrapperClass) → OnPageReady
 ! All board setup (AddColumn, AddCard, SetBoardTitle, etc.) goes here.
 MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   </section>
@@ -547,7 +550,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   <!-- Context Menu -->
   <section id="api-context-menu">
     <h2>Context Menu</h2>
-    <p>Right-click on any card to show the context menu. Build it once in the After Init embed. The <code>pParentId</code> for top-level items is always <code>'root'</code>.</p>
+    <p>Right-click on any card to show the context menu. Build it once in <strong>OnPageReady</strong>. The <code>pParentId</code> for top-level items is always <code>'root'</code>.</p>
     <table class="api-table">
       <thead><tr><th style="width:54%">Method</th><th>Description</th></tr></thead>
       <tbody>
@@ -582,7 +585,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   <!-- Status System -->
   <section id="api-status">
     <h2>Status System</h2>
-    <p>The status system is a high-level helper that ties together a colour status bar, a context menu radio group, and a filter group — all from a single list of status options. Call these methods in the After Init embed, then call <code>SetCardStatus</code> on individual cards.</p>
+    <p>The status system is a high-level helper that ties together a colour status bar, a context menu radio group, and a filter group — all from a single list of status options. Call these methods in <strong>OnPageReady</strong>, then call <code>SetCardStatus</code> on individual cards.</p>
     <table class="api-table">
       <thead><tr><th style="width:50%">Method</th><th>Description</th></tr></thead>
       <tbody>
@@ -602,7 +605,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
 
     <div class="method-block">
       <div class="msig">OnPageReady()</div>
-      <div class="mdesc">Fires once when the WebView2 page has fully loaded and the board is ready. If you need to delay data loading until the control is ready, populate the board here instead of After Init.</div>
+      <div class="mdesc">Fires once when the WebView2 page has fully loaded and the board is ready to receive calls. <strong>All board population code goes here</strong> — columns, cards, appearance, context menu, and status options.</div>
     </div>
     <div class="method-block">
       <div class="msig">OnCardMoved(STRING pCardId, STRING pFromColumn, STRING pToColumn)</div>
@@ -667,7 +670,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   <!-- ════ EXAMPLES ════ -->
   <section id="ex-basic">
     <h2>Example — Basic Board</h2>
-    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
 MyKanban.AddColumn('backlog',    'Backlog',     0)
 MyKanban.AddColumn('todo',       'To Do',       COLOR:Blue)
 MyKanban.AddColumn('inprogress', 'In Progress', COLOR:Yellow)
@@ -687,7 +690,7 @@ END</code></pre>
 
   <section id="ex-cardmeta">
     <h2>Example — Rich Cards with KanbanCardMeta</h2>
-    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
 CardData    KanbanCardMeta
 
 MyKanban.AddColumn('todo', 'To Do', 0)
@@ -754,7 +757,7 @@ MyKanbanClass.OnCardMoved PROCEDURE(STRING pCardId, STRING pFrom, STRING pTo)
 
   <section id="ex-contextmenu">
     <h2>Example — Context Menu</h2>
-    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
 ! Top-level items
 MyKanban.AddContextMenuItem('root', 'edit',   'Edit Card...')
 MyKanban.AddContextMenuItem('root', 'delete', 'Delete Card')
@@ -785,8 +788,8 @@ MyKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
 
   <section id="ex-status">
     <h2>Example — Status System</h2>
-    <p>The status system ties a colour, a context menu radio button, and a filter option together for each status value. Set it up once in After Init.</p>
-    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
+    <p>The status system ties a colour, a context menu radio button, and a filter option together for each status value. Set it up once in <strong>OnPageReady</strong>.</p>
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
 ! 1. Define status options
 MyKanban.SetStatusTitle('Priority')
 MyKanban.AddStatusOption('low',      'Low',      039D353H)  ! green
@@ -818,7 +821,7 @@ MyKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
 
   <section id="ex-filters">
     <h2>Example — Custom Filter Groups</h2>
-    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
 ! Team filter
 MyKanban.AddFilterGroup('team', 'Team')
 MyKanban.AddFilterItem('team', 'frontend',  'Frontend',  03498DBH)
@@ -847,7 +850,7 @@ MyKanban.SetCardFilterValue('c2', 'sprint', 'sprint2')</code></pre>
 
   <section id="ex-appearance">
     <h2>Example — Dark Mode &amp; Appearance</h2>
-    <pre><code class="language-clarion">! ── After Kanban Init ──────────────────────────────────────────
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
 ! Dark mode with a custom board title
 MyKanban.SetDarkMode(1)
 MyKanban.SetBoardTitle('Task Board', 01E1E2EH, 0FFFFFFH)
