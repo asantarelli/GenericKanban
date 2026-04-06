@@ -6,15 +6,23 @@
   #insert(%ReadClassesPR,'KanbanWrapper.inc',%pa,%force)
 
 #! ---------------------------------------------------------------------------
-#! %CopyFile - Copy a single file from Accessory\BIN to the project folder.
+#! %CopyFile - Copy a single file from Accessory\BIN to the output folder.
 #!   %pFilename  : filename (e.g. 'GenericKanban.dll')
-#!   %pSubFolder : destination subfolder relative to app folder, or '' for root
+#!   %pSubFolder : destination subfolder within output dir, or '' for root
 #! ---------------------------------------------------------------------------
 #GROUP(%gkCopyFile,%pFilename,%pSubFolder),AUTO
 #DECLARE(%gkSrcPath)
 #DECLARE(%gkDestPath)
-#! Remove stale copy from app root (in case layout changed)
-#REMOVE(FULLNAME('.\'&%pFilename))
+#DECLARE(%gkDestRoot)
+#! Resolve output root: app folder optionally + output subdir
+#IF(%gkOutputDir='')
+  #SET(%gkDestRoot,FULLNAME('.\'))
+#ELSE
+  #SET(%gkDestRoot,FULLNAME('.\')&%gkOutputDir&'\')
+  #RUN('cmd.exe /c if not exist "'&%gkDestRoot&'" mkdir "'&%gkDestRoot&'"'),WAIT
+#ENDIF
+#! Remove stale copy from old location
+#REMOVE(FULLNAME('.\')&%pFilename)
 #! Locate source in Accessory\BIN
 #SET(%gkSrcPath,%CWRoot&'Accessory\BIN\'&%pFilename)
 #IF(NOT FILEEXISTS(%gkSrcPath))
@@ -23,25 +31,30 @@
 #ENDIF
 #! Build destination path
 #IF(%pSubFolder='')
-  #SET(%gkDestPath,FULLNAME('.\')&%pFilename)
+  #SET(%gkDestPath,%gkDestRoot&%pFilename)
 #ELSE
-  #SET(%gkDestPath,FULLNAME('.\')&%pSubFolder&'\'&%pFilename)
-  #! Ensure subfolder exists
-  #RUN('cmd.exe /c if not exist "'&FULLNAME('.\')&%pSubFolder&'" mkdir "'&FULLNAME('.\')&%pSubFolder&'"'),WAIT
+  #SET(%gkDestPath,%gkDestRoot&%pSubFolder&'\'&%pFilename)
+  #RUN('cmd.exe /c if not exist "'&%gkDestRoot&%pSubFolder&'" mkdir "'&%gkDestRoot&%pSubFolder&'"'),WAIT
 #ENDIF
 #RUN('cmd.exe /c echo f | xcopy "'& %gkSrcPath &'" "'& %gkDestPath &'" /D /Y'),WAIT
 
 #! ---------------------------------------------------------------------------
 #! %CopyFolder - Copy an entire folder tree from Accessory\<pSrcRel> to the
-#!              project folder at <pDestRel>.
+#!              output folder at <pDestRel>.
 #!   %pSrcRel  : path relative to %CWRoot&'Accessory\' (e.g. 'resources\wwwroot')
-#!   %pDestRel : destination path relative to app folder (e.g. 'wwwroot')
+#!   %pDestRel : destination path within output dir (e.g. 'wwwroot')
 #! ---------------------------------------------------------------------------
 #GROUP(%gkCopyFolder,%pSrcRel,%pDestRel),AUTO
 #DECLARE(%gkFolderSrc)
 #DECLARE(%gkFolderDest)
+#DECLARE(%gkFolderRoot)
+#IF(%gkOutputDir='')
+  #SET(%gkFolderRoot,FULLNAME('.\'))
+#ELSE
+  #SET(%gkFolderRoot,FULLNAME('.\')&%gkOutputDir&'\')
+#ENDIF
 #SET(%gkFolderSrc,%CWRoot&'Accessory\'&%pSrcRel)
-#SET(%gkFolderDest,FULLNAME('.\')&%pDestRel)
+#SET(%gkFolderDest,%gkFolderRoot&%pDestRel)
 #IF(NOT FILEEXISTS(%gkFolderSrc))
   #ERROR('GenericKanban: Folder "'& %gkFolderSrc &'" not found. Ensure GenericKanban is installed.')
   #RETURN
@@ -61,6 +74,10 @@
     #ENDBOXED
     #BOXED('Deployment')
       #PROMPT('Do not copy DLLs and resources to project folder',CHECK),%gkDoNotCopy,DEFAULT(0),AT(10)
+      #ENABLE(%gkDoNotCopy=0)
+        #PROMPT('Output subdirectory (leave blank if EXE/DLL is in app folder):',@S100),%gkOutputDir,DEFAULT(''),AT(10)
+        #PROMPT('e.g. enter  build  if your EXE/DLL goes to a ''build'' subfolder',@S1),%gkOutputDirHint,DEFAULT(''),DISABLE,AT(10)
+      #ENDENABLE
     #ENDBOXED
   #ENDTAB
   #TAB('Classes')
