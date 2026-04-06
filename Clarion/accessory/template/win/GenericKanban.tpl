@@ -153,6 +153,9 @@ INCLUDE('KanbanWrapper.inc'),ONCE
 #AT(%BeforeFileDeclarationInMember)
 INCLUDE('KanbanWrapper.inc'),ONCE
 #ENDAT
+#AT(%DllExportList),WHERE(%ProgramExtension='DLL' AND %RootDLL=1 AND %MultiDLL=1)
+#INSERT(%ExportClassesPR,'KanbanWrapper.inc')
+#ENDAT
 #AT(%CustomGlobalDeclarations)
   #INSERT(%Defines,1,'KanBanWrapperLinkMode','KanBanWrapperDLLMode',%MultiDLL,%RootDLL)
   #! Copy DLLs and resources to project folder (unless opted out)
