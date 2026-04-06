@@ -92,24 +92,6 @@
     <Message Text="Copied wwwroot to Clarion\accessory\resources\wwwroot" Importance="high" />
   </Target>
 
-  <Target Name="CopyClarionSourceToDist" AfterTargets="CopyWwwrootToClarion">
-    <MakeDir Directories="$(ProjectDir)Clarion\accessory\libsrc\win"   Condition="!Exists('$(ProjectDir)Clarion\accessory\libsrc\win')" />
-    <MakeDir Directories="$(ProjectDir)Clarion\accessory\template\win" Condition="!Exists('$(ProjectDir)Clarion\accessory\template\win')" />
-    <ItemGroup>
-      <ClarionSrc Include="$(ProjectDir)Clarion-src\**\*" />
-    </ItemGroup>
-    <Copy SourceFiles="$(ProjectDir)Clarion-src\libsrc\win\KanbanWrapper.inc"
-          DestinationFolder="$(ProjectDir)Clarion\accessory\libsrc\win"
-          SkipUnchangedFiles="true"
-          Condition="Exists('$(ProjectDir)Clarion-src\libsrc\win\KanbanWrapper.inc')" />
-    <Copy SourceFiles="$(ProjectDir)Clarion-src\libsrc\win\KanbanWrapper.clw"
-          DestinationFolder="$(ProjectDir)Clarion\accessory\libsrc\win"
-          SkipUnchangedFiles="true"
-          Condition="Exists('$(ProjectDir)Clarion-src\libsrc\win\KanbanWrapper.clw')" />
-    <Copy SourceFiles="$(ProjectDir)Clarion-src\template\win\GenericKanban.tpl"
-          DestinationFolder="$(ProjectDir)Clarion\accessory\template\win"
-          SkipUnchangedFiles="true"
-          Condition="Exists('$(ProjectDir)Clarion-src\template\win\GenericKanban.tpl')" />
-  </Target>
+
 
 </Project>

@@ -2,8 +2,9 @@
 bin/
 obj/
 
-# Clarion deployment folder (generated artifacts)
-Clarion/
+# Clarion deployment folder - ignore generated artifacts only
+Clarion/accessory/bin/
+Clarion/accessory/resources/
 
 # Visual Studio files
 *.user
