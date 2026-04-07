@@ -63,6 +63,13 @@
       el.dataset.cardId = card.id;
       if (card.bgColor) el.style.backgroundColor = card.bgColor;
 
+      // Double-click: fire CardDoubleClick event
+      el.addEventListener('dblclick', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
+      });
+
       // Right-click: show context menu if one has been defined
       el.addEventListener('contextmenu', e => {
         if (!kanban._menuDef.length) return;

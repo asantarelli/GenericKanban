@@ -234,6 +234,8 @@ KanbanProcess_%KanbanObjName  PROCEDURE
       %KanbanObjName.OnCardMoved(%KanbanObjName.Parm1,%KanbanObjName.Parm2,%KanbanObjName.Parm3)
     OF 'ContextMenuSelected'
       %KanbanObjName.OnContextMenuSelected(%KanbanObjName.Parm1,%KanbanObjName.Parm2)
+    OF 'CardDoubleClick'
+      %KanbanObjName.OnDoubleClick(%KanbanObjName.Parm1)
     ELSE
       %KanbanObjName.OnOtherEvent(%KanbanObjName.EventName)
     END
