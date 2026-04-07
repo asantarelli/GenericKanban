@@ -21,6 +21,8 @@
     _searchText: '',
     _searchEnabled: true,
     _ctxEl: null, // current visible menu DOM element
+    _lastClickCard: null,
+    _lastClickTime: 0,
 
     _initSortable(col) {
       col.sortable = new Sortable(col.cardList, {
@@ -63,9 +65,17 @@
       el.dataset.cardId = card.id;
       if (card.bgColor) el.style.backgroundColor = card.bgColor;
 
-      // Click card to open it
+      // Double-click detection (two clicks within 300ms = open card)
       el.addEventListener('click', e => {
-        window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
+        const now = Date.now();
+        if (kanban._lastClickCard === card.id && (now - kanban._lastClickTime) < 300) {
+          window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
+          kanban._lastClickCard = null;
+          kanban._lastClickTime = 0;
+        } else {
+          kanban._lastClickCard = card.id;
+          kanban._lastClickTime = now;
+        }
       });
       // Right-click: show context menu if one has been defined
       el.addEventListener('contextmenu', e => {
