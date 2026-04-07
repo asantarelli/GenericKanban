@@ -21,6 +21,9 @@
     _searchText: '',
     _searchEnabled: true,
     _ctxEl: null, // current visible menu DOM element
+    _lastClickCard: null,
+    _lastClickTime: 0,
+    _singleClickTimer: null,
 
     _initSortable(col) {
       col.sortable = new Sortable(col.cardList, {
@@ -62,6 +65,27 @@
       el.className = 'card';
       el.dataset.cardId = card.id;
       if (card.bgColor) el.style.backgroundColor = card.bgColor;
+
+      // Single/double-click detection
+      el.addEventListener('click', e => {
+        const now = Date.now();
+        if (kanban._lastClickCard === card.id && (now - kanban._lastClickTime) < 300) {
+          clearTimeout(kanban._singleClickTimer);
+          kanban._singleClickTimer = null;
+          kanban._lastClickCard = null;
+          kanban._lastClickTime = 0;
+          window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
+        } else {
+          kanban._lastClickCard = card.id;
+          kanban._lastClickTime = now;
+          clearTimeout(kanban._singleClickTimer);
+          kanban._singleClickTimer = setTimeout(() => {
+            kanban._singleClickTimer = null;
+            kanban._lastClickCard = null;
+            window.chrome.webview.postMessage(JSON.stringify({ type: 'CardClick', cardId: card.id }));
+          }, 300);
+        }
+      });
 
       // Right-click: show context menu if one has been defined
       el.addEventListener('contextmenu', e => {
