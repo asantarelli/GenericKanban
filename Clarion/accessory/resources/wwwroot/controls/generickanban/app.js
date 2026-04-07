@@ -30,6 +30,7 @@
         ghostClass: 'card-ghost',
         chosenClass: 'card-chosen',
         dragClass: 'card-drag',
+        handle: '.card-handle',
         emptyInsertThreshold: 20,
         onEnd(evt) {
           const cardId = evt.item.dataset.cardId;
@@ -62,6 +63,18 @@
       el.className = 'card';
       el.dataset.cardId = card.id;
       if (card.bgColor) el.style.backgroundColor = card.bgColor;
+
+      // Drag handle (Sortable targets this; clicking elsewhere opens the card)
+      const handle = document.createElement('div');
+      handle.className = 'card-handle';
+      el.appendChild(handle);
+
+      // Click anywhere on card except handle fires CardDoubleClick
+      el.addEventListener('click', e => {
+        if (!e.target.classList.contains('card-handle')) {
+          window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
+        }
+      });
 
       // Right-click: show context menu if one has been defined
       el.addEventListener('contextmenu', e => {
