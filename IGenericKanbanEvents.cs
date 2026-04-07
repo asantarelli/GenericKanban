@@ -33,5 +33,11 @@ namespace GenericKanban
         /// <param name="itemId">ID of the menu item that was selected.</param>
         [DispId(3)]
         void ContextMenuSelected(string cardId, string itemId);
+        /// <summary>
+        /// Fired when the user clicks a card without dragging (Trello-style open).
+        /// </summary>
+        /// <param name="cardId">ID of the card that was clicked.</param>
+        [DispId(4)]
+        void CardDoubleClick(string cardId);
     }
 }

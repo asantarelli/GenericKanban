@@ -20,6 +20,9 @@ namespace GenericKanban
     [ComVisible(false)]
     public delegate void ContextMenuSelectedEventHandler(string cardId, string itemId);
 
+    [ComVisible(false)]
+    public delegate void CardDoubleClickEventHandler(string cardId);
+
     [ComVisible(true)]
     [Guid("124E0548-A46F-449D-A10E-E1741D4EB644")]
     [ProgId("GenericKanban.GenericKanbanControl")]
@@ -34,6 +37,7 @@ namespace GenericKanban
         public event CardMovedEventHandler CardMoved;
         public event PageReadyEventHandler PageReady;
         public event ContextMenuSelectedEventHandler ContextMenuSelected;
+        public event CardDoubleClickEventHandler CardDoubleClick;
 
         // ----------------------------------------------------------------
         // WebView2 state
@@ -211,6 +215,12 @@ namespace GenericKanban
                         var itemId    = (string)msg["itemId"];
                         try { ContextMenuSelected?.Invoke(ctxCardId, itemId); }
                         catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban ContextMenuSelected event sink error: {0}", ex); }
+                        break;
+
+                    case "CardDoubleClick":
+                        var dblCardId = (string)msg["cardId"];
+                        try { CardDoubleClick?.Invoke(dblCardId); }
+                        catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban CardDoubleClick event sink error: {0}", ex); }
                         break;
                 }
             }

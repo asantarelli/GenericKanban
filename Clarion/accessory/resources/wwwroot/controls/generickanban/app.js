@@ -16,8 +16,6 @@
     _menuDef: [],   // root-level node array
     _menuMap: {},   // id â†’ node (for parent lookups when building)
     _ctxCardId: null, // card that was right-clicked
-    _lastClickId: null, // for manual double-click detection
-    _lastClickTime: 0,
     _sortKeys: [],        // [{col, dir}] multi-column sort state
     _tableSortInit: false,
     _searchText: '',
@@ -32,8 +30,6 @@
         ghostClass: 'card-ghost',
         chosenClass: 'card-chosen',
         dragClass: 'card-drag',
-        delay: 150,
-        delayOnTouchOnly: false,
         emptyInsertThreshold: 20,
         onEnd(evt) {
           const cardId = evt.item.dataset.cardId;
@@ -66,21 +62,6 @@
       el.className = 'card';
       el.dataset.cardId = card.id;
       if (card.bgColor) el.style.backgroundColor = card.bgColor;
-
-      // Double-click: two rapid clicks (dblclick unreliable in WebView2+Sortable)
-      el.addEventListener('click', e => {
-        const now = Date.now();
-        if (kanban._lastClickId === card.id && now - kanban._lastClickTime < 400) {
-          e.preventDefault();
-          e.stopPropagation();
-          kanban._lastClickId = null;
-          kanban._lastClickTime = 0;
-          window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
-        } else {
-          kanban._lastClickId = card.id;
-          kanban._lastClickTime = now;
-        }
-      });
 
       // Right-click: show context menu if one has been defined
       el.addEventListener('contextmenu', e => {
@@ -190,7 +171,7 @@
     addContextMenuItem(parentId, itemId, label) {
       const node = { type: 'item', id: itemId, label };
       this._menuMap[itemId] = node;
-      if (!parentId || parentId === 'root') {
+      if (!parentId) {
         this._menuDef.push(node);
       } else {
         const parent = this._menuMap[parentId];
@@ -201,7 +182,7 @@
     addContextMenuSub(parentId, subId, label) {
       const node = { type: 'sub', id: subId, label, children: [] };
       this._menuMap[subId] = node;
-      if (!parentId || parentId === 'root') {
+      if (!parentId) {
         this._menuDef.push(node);
       } else {
         const parent = this._menuMap[parentId];
@@ -211,7 +192,7 @@
 
     addContextMenuSep(parentId) {
       const node = { type: 'sep' };
-      if (!parentId || parentId === 'root') {
+      if (!parentId) {
         this._menuDef.push(node);
       } else {
         const parent = this._menuMap[parentId];
@@ -222,7 +203,7 @@
     addContextMenuRadioGroup(parentId, groupId, label) {
       const node = { type: 'radio', id: groupId, label, children: [] };
       this._menuMap[groupId] = node;
-      if (!parentId || parentId === 'root') {
+      if (!parentId) {
         this._menuDef.push(node);
       } else {
         const parent = this._menuMap[parentId];
