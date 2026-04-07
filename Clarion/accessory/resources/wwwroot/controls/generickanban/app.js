@@ -16,6 +16,8 @@
     _menuDef: [],   // root-level node array
     _menuMap: {},   // id â†’ node (for parent lookups when building)
     _ctxCardId: null, // card that was right-clicked
+    _lastClickId: null, // for manual double-click detection
+    _lastClickTime: 0,
     _sortKeys: [],        // [{col, dir}] multi-column sort state
     _tableSortInit: false,
     _searchText: '',
@@ -65,11 +67,19 @@
       el.dataset.cardId = card.id;
       if (card.bgColor) el.style.backgroundColor = card.bgColor;
 
-      // Double-click: fire CardDoubleClick event
-      el.addEventListener('dblclick', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
+      // Double-click: two rapid clicks (dblclick unreliable in WebView2+Sortable)
+      el.addEventListener('click', e => {
+        const now = Date.now();
+        if (kanban._lastClickId === card.id && now - kanban._lastClickTime < 400) {
+          e.preventDefault();
+          e.stopPropagation();
+          kanban._lastClickId = null;
+          kanban._lastClickTime = 0;
+          window.chrome.webview.postMessage(JSON.stringify({ type: 'CardDoubleClick', cardId: card.id }));
+        } else {
+          kanban._lastClickId = card.id;
+          kanban._lastClickTime = now;
+        }
       });
 
       // Right-click: show context menu if one has been defined
