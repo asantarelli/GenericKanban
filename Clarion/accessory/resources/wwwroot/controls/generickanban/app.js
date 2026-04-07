@@ -30,6 +30,8 @@
         ghostClass: 'card-ghost',
         chosenClass: 'card-chosen',
         dragClass: 'card-drag',
+        delay: 150,
+        delayOnTouchOnly: false,
         emptyInsertThreshold: 20,
         onEnd(evt) {
           const cardId = evt.item.dataset.cardId;
