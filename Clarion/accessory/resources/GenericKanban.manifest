@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+
+  <assemblyIdentity
+      name="GenericKanban"
+      version="1.0.0.0"
+      processorArchitecture="x86"
+      type="win32"/>
+
+  <clrClass
+      clsid="{124E0548-A46F-449D-A10E-E1741D4EB644}"
+      progid="GenericKanban.GenericKanbanControl"
+      threadingModel="Apartment"
+      name="GenericKanban.GenericKanbanControl"
+      runtimeVersion="v4.0.30319">
+  </clrClass>
+
+  <file name="GenericKanban.dll">
+     <typelib
+         tlbid="{2D2C198A-C5FE-42E0-B32A-8A6A8153ACBA}"
+         version="1.0"
+         helpdir=""
+         resourceid="0"
+         flags="HASDISKIMAGE"/>
+  </file>
+
+</assembly>

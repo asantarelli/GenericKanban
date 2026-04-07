@@ -39,5 +39,12 @@ namespace GenericKanban
         /// <param name="cardId">ID of the card that was clicked.</param>
         [DispId(4)]
         void CardDoubleClick(string cardId);
+
+        /// <summary>
+        /// Fired when the user single-clicks a card (confirmed after 300ms with no second click).
+        /// </summary>
+        /// <param name="cardId">ID of the card that was clicked.</param>
+        [DispId(5)]
+        void CardClick(string cardId);
     }
 }

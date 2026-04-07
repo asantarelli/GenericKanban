@@ -404,6 +404,9 @@ KanbanWrapperClass.OnCardMoved              PROCEDURE(STRING pCardId, STRING pFr
 KanbanWrapperClass.OnContextMenuSelected    PROCEDURE(STRING pCardId, STRING pActionId)
   CODE
 
+KanbanWrapperClass.OnSingleClick            PROCEDURE(STRING pCardId)
+  CODE
+
 KanbanWrapperClass.OnDoubleClick            PROCEDURE(STRING pCardId)
   CODE
 

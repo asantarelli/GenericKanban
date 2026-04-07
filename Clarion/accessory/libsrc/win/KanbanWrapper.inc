@@ -130,6 +130,7 @@ SetCardStatus             PROCEDURE(STRING pCardId, STRING pOptionId),VIRTUAL
 OnPageReady               PROCEDURE(),VIRTUAL
 OnCardMoved               PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColumn),VIRTUAL
 OnContextMenuSelected     PROCEDURE(STRING pCardId, STRING pActionId),VIRTUAL
+OnSingleClick             PROCEDURE(STRING pCardId),VIRTUAL
 OnDoubleClick             PROCEDURE(STRING pCardId),VIRTUAL
 OnOtherEvent              PROCEDURE(STRING pEventName),VIRTUAL
 

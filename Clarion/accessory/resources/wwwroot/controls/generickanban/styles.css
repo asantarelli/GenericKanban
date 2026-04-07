@@ -264,7 +264,6 @@ html, body {
 .card-list::-webkit-scrollbar-track { background: transparent; }
 
 .card {
-  position: relative;
   background: #fff;
   border-radius: 4px;
   margin-bottom: 7px;
@@ -738,24 +737,3 @@ body.dark .fp-search {
 }
 body.dark .fp-search:focus { border-color: #4d9cf8; }
 body.dark .fp-search::placeholder { color: #768390; }
-
-/* Drag handle */
-.card-handle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 10px;
-  cursor: grab;
-  border-radius: 6px 6px 0 0;
-}
-.card-handle::before {
-  content: '⋯⋯⋯';
-  display: block;
-  text-align: center;
-  font-size: 7px;
-  line-height: 10px;
-  color: rgba(255,255,255,0.2);
-  letter-spacing: 4px;
-}
-.card-handle:active { cursor: grabbing; }
