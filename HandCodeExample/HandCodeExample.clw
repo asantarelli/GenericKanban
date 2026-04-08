@@ -18,32 +18,33 @@ Main      PROCEDURE()
 KanbanProcess_Kanban    PROCEDURE
           END
 
-Window      WINDOW('GenericKanban Feature Demo'),AT(,,960,600),FONT('Segoe UI',9),RESIZE,GRAY,MAX,SYSTEM,IMM
-              OLE,AT(2,2,715,558),USE(?KanbanOLE)
-              STRING(''),AT(2,562,715,14),USE(?StatusLabel)
-              ! ---- Card update buttons ----
-              BUTTON('Update c1 Title / Body / Tag'),AT(720,2,237,14),USE(?BtnUpdateCard)
-              BUTTON('Toggle c1 Visible'),AT(720,18,237,14),USE(?BtnToggleVisible)
-              BUTTON('Color c1 (Bg / Text / Border)'),AT(720,34,237,14),USE(?BtnColorCard)
-              BUTTON('Set c1 Assignee + DueDate'),AT(720,50,237,14),USE(?BtnAssignee)
-              BUTTON('Toggle c1 Overdue'),AT(720,66,237,14),USE(?BtnOverdue)
-              ! ---- Move buttons ----
-              BUTTON('Move c1 -> Studio'),AT(720,86,237,14),USE(?BtnMoveToStudio)
-              BUTTON('Move c2 -> Complete'),AT(720,102,237,14),USE(?BtnMoveToComplete)
-              BUTTON('Move c1 to Top'),AT(720,118,237,14),USE(?BtnMoveToTop)
-              ! ---- Query buttons ----
-              BUTTON('Query: c1 Column + Count'),AT(720,138,237,14),USE(?BtnCardInfo)
-              BUTTON('Query: c1 Radio Value'),AT(720,154,237,14),USE(?BtnRadioValue)
-              ! ---- Board toggle buttons ----
-              BUTTON('Toggle Dark Mode'),AT(720,174,237,14),USE(?BtnDarkMode)
-              BUTTON('Toggle Read-Only'),AT(720,190,237,14),USE(?BtnReadOnly)
-              BUTTON('Toggle Column Width'),AT(720,206,237,14),USE(?BtnColWidth)
-              ! ---- Manage buttons ----
-              BUTTON('Add New Card (c7)'),AT(720,226,237,14),USE(?BtnAddCard)
-              BUTTON('Clear Print Column'),AT(720,242,237,14),USE(?BtnClearColumn)
-              BUTTON('Remove c6'),AT(720,258,237,14),USE(?BtnRemoveCard)
-              BUTTON('&Close'),AT(877,578,80,14),USE(?CloseButton),DEFAULT
+Window      WINDOW('GenericKanban Feature Demo'),AT(,,860,540),FONT('Segoe UI',9),RESIZE,GRAY,MAX,SYSTEM,IMM
+              OLE,AT(2,2,615,496),USE(?KanbanOLE)
               END
+              
+              STRING(''),AT(2,500,615,14),USE(?StatusLabel)
+              ! ---- Card update buttons ----
+              BUTTON('Update c1 Title / Body / Tag'),AT(620,2,237,14),USE(?BtnUpdateCard)
+              BUTTON('Toggle c1 Visible'),AT(620,18,237,14),USE(?BtnToggleVisible)
+              BUTTON('Color c1 (Bg / Text / Border)'),AT(620,34,237,14),USE(?BtnColorCard)
+              BUTTON('Set c1 Assignee + DueDate'),AT(620,50,237,14),USE(?BtnAssignee)
+              BUTTON('Toggle c1 Overdue'),AT(620,66,237,14),USE(?BtnOverdue)
+              ! ---- Move buttons ----
+              BUTTON('Move c1 -> Studio'),AT(620,86,237,14),USE(?BtnMoveToStudio)
+              BUTTON('Move c2 -> Complete'),AT(620,102,237,14),USE(?BtnMoveToComplete)
+              BUTTON('Move c1 to Top'),AT(620,118,237,14),USE(?BtnMoveToTop)
+              ! ---- Query buttons ----
+              BUTTON('Query: c1 Column + Count'),AT(620,138,237,14),USE(?BtnCardInfo)
+              BUTTON('Query: c1 Radio Value'),AT(620,154,237,14),USE(?BtnRadioValue)
+              ! ---- Board toggle buttons ----
+              BUTTON('Toggle Dark Mode'),AT(620,174,237,14),USE(?BtnDarkMode)
+              BUTTON('Toggle Read-Only'),AT(620,190,237,14),USE(?BtnReadOnly)
+              BUTTON('Toggle Column Width'),AT(620,206,237,14),USE(?BtnColWidth)
+              ! ---- Manage buttons ----
+              BUTTON('Add New Card (c7)'),AT(620,226,237,14),USE(?BtnAddCard)
+              BUTTON('Clear Print Column'),AT(620,242,237,14),USE(?BtnClearColumn)
+              BUTTON('Remove c6'),AT(620,258,237,14),USE(?BtnRemoveCard)
+              BUTTON('&Close'),AT(777,518,80,14),USE(?CloseButton),DEFAULT
             END
 Kanban_Event    EQUATE(Event:User+2000+?KanbanOLE)
 
