@@ -179,7 +179,7 @@
 <nav id="sidebar">
   <div class="nav-header">
     <div class="logo">📋 GenericKanban</div>
-    <div class="version">v1.0.0 · Clarion COM Control</div>
+    <div class="version">v1.1.0 · Clarion COM Control</div>
   </div>
 
   <div class="nav-section">Getting Started</div>
@@ -201,6 +201,7 @@
   <a href="#api-filters" class="sub">Filters</a>
   <a href="#api-status" class="sub">Status System</a>
   <a href="#api-events" class="sub">Events</a>
+  <a href="#api-new" class="sub">New in v1.1</a>
 
   <div class="nav-section">Data Structures</div>
   <a href="#ds-cardmeta">KanbanCardMeta</a>
@@ -216,6 +217,9 @@
   <a href="#ex-appearance">Appearance</a>
   <a href="#ex-multidll">Multi-DLL</a>
   <a href="#ex-extend">Extending the Class</a>
+  <a href="#ex-wip">WIP Limits</a>
+  <a href="#ex-clicks">Click Events</a>
+  <a href="#ex-movecard">Move Card &amp; Visibility</a>
 </nav>
 
 <!-- ═══════════════ MAIN ═══════════════ -->
@@ -241,9 +245,13 @@
         <h3>🚀 What it does</h3>
         <ul>
           <li>Drag-and-drop card movement between columns</li>
+          <li>Programmatic card move — fires the same event as drag</li>
+          <li>WIP limits per column with amber/red visual indicator</li>
+          <li>Single-click and double-click card events</li>
           <li>Rich card metadata: tags, assignees, due dates, progress</li>
           <li>Hierarchical right-click context menus</li>
           <li>Filter panel with colour-coded groups</li>
+          <li>Show/hide cards independently of the filter system</li>
           <li>Built-in status system (tied to colour, filter, and menu)</li>
           <li>Dark mode, board titles, and full colour customisation</li>
         </ul>
@@ -493,6 +501,8 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetColumnHeaderTextColor(pColumnId, pColor)</td><td class="desc">Sets the header text colour of a specific column.</td></tr>
         <tr><td class="sig">SetAllColumnTextColors(pColor)</td><td class="desc">Sets the header text colour for every column at once.</td></tr>
         <tr><td class="sig">SetColumnBodyColor(pColumnId, pColor)</td><td class="desc">Sets the background colour of the column body (card area).</td></tr>
+        <tr><td class="sig">SetColumnWipLimit(pColumnId, pMaxCards)</td><td class="desc"><strong>New.</strong> Sets a WIP (Work In Progress) limit. The count badge shows <code>count/limit</code> and turns <strong style="color:#e67e22">amber</strong> when at the limit, <strong style="color:#e74c3c">red</strong> when exceeded. Pass <code>0</code> to remove the limit.</td></tr>
+        <tr><td class="sig">GetColumnCardCount(pColumnId)</td><td class="desc"><strong>New.</strong> Returns the current number of cards in a column as a <code>LONG</code>. Computed from C# shadow state — no round-trip to JS.</td></tr>
       </tbody>
     </table>
   </section>
@@ -510,6 +520,8 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">ClearColumnCards(pColumnId)</td><td class="desc">Removes all cards from a column (keeps the column).</td></tr>
         <tr><td class="sig">GetCardColumn(pCardId)</td><td class="desc">Returns the current column ID of a card. Useful after drag-and-drop to verify state.</td></tr>
         <tr><td class="sig">MoveCardToTop(pCardId)</td><td class="desc">Moves a card to the top of its current column.</td></tr>
+        <tr><td class="sig">MoveCard(pCardId, pColumnId)</td><td class="desc"><strong>New.</strong> Moves a card to a different column programmatically. Fires <code>OnCardMoved</code> identically to a user drag. No-op if already in the target column.</td></tr>
+        <tr><td class="sig">SetCardVisible(pCardId, pVisible)</td><td class="desc"><strong>New.</strong> Shows (<code>1</code>) or hides (<code>0</code>) a card without removing it. Independent of the filter panel — both systems can coexist on the same card.</td></tr>
       </tbody>
     </table>
 
@@ -601,7 +613,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   <!-- Events -->
   <section id="api-events">
     <h2>Event Handlers</h2>
-    <p>Override these virtual methods in a derived class to respond to board interactions.</p>
+    <p>Override these virtual methods in a derived class to respond to board interactions. The generated <code>KanbanProcess_</code> procedure dispatches all events automatically.</p>
 
     <div class="method-block">
       <div class="msig">OnPageReady()</div>
@@ -609,7 +621,15 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
     </div>
     <div class="method-block">
       <div class="msig">OnCardMoved(STRING pCardId, STRING pFromColumn, STRING pToColumn)</div>
-      <div class="mdesc">Fires when the user drags a card to a different column. <code>pCardId</code> is the card identifier, <code>pFromColumn</code> and <code>pToColumn</code> are column IDs.</div>
+      <div class="mdesc">Fires when a card moves to a different column — whether by user drag-and-drop <em>or</em> by a programmatic <code>MoveCard()</code> call. <code>pCardId</code> is the card identifier, <code>pFromColumn</code> and <code>pToColumn</code> are column IDs.</div>
+    </div>
+    <div class="method-block">
+      <div class="msig">OnSingleClick(STRING pCardId)</div>
+      <div class="mdesc"><strong>New.</strong> Fires when the user clicks a card with a single click (confirmed after a 300 ms window with no second click). Use this to open a card detail view or select the card. <code>pCardId</code> is the card that was clicked.</div>
+    </div>
+    <div class="method-block">
+      <div class="msig">OnDoubleClick(STRING pCardId)</div>
+      <div class="mdesc"><strong>New.</strong> Fires when the user double-clicks a card (two clicks within 300 ms). Use this for a Trello-style "open card" action. <code>pCardId</code> is the card that was double-clicked. A double-click does <em>not</em> also fire <code>OnSingleClick</code>.</div>
     </div>
     <div class="method-block">
       <div class="msig">OnContextMenuSelected(STRING pCardId, STRING pActionId)</div>
@@ -618,6 +638,11 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
     <div class="method-block">
       <div class="msig">OnOtherEvent(STRING pEventName)</div>
       <div class="mdesc">Catch-all for any events not handled by the specific handlers above. <code>pEventName</code> is the raw event name string.</div>
+    </div>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p><strong>Single vs double click:</strong> the 300 ms detection window runs entirely in JavaScript. A double-click cancels the pending single-click timer, so <code>OnSingleClick</code> and <code>OnDoubleClick</code> are always mutually exclusive for the same interaction.</p>
     </div>
 
     <h3>Event data properties</h3>
@@ -898,6 +923,23 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
 ! Usage is identical in all modules once configured:</code></pre>
   </section>
 
+  <!-- New in v1.1 -->
+  <section id="api-new">
+    <h2>New in v1.1</h2>
+    <p>The following methods and events were added in v1.1. All are fully backward-compatible — existing code requires no changes.</p>
+    <table class="api-table">
+      <thead><tr><th style="width:54%">Method / Event</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="sig">MoveCard(pCardId, pColumnId)</td><td class="desc">Programmatically moves a card to a different column. Fires <code>OnCardMoved</code>.</td></tr>
+        <tr><td class="sig">SetColumnWipLimit(pColumnId, pMaxCards)</td><td class="desc">Sets a WIP limit for a column. Badge turns amber at the limit, red when exceeded. Pass <code>0</code> to clear.</td></tr>
+        <tr><td class="sig">GetColumnCardCount(pColumnId) → LONG</td><td class="desc">Returns the card count for a column from C# shadow state.</td></tr>
+        <tr><td class="sig">SetCardVisible(pCardId, pVisible)</td><td class="desc">Shows or hides a card without removing it. Independent of the filter panel.</td></tr>
+        <tr><td class="sig">OnSingleClick(STRING pCardId)</td><td class="desc">Event — fires on a confirmed single click (after 300 ms with no second click).</td></tr>
+        <tr><td class="sig">OnDoubleClick(STRING pCardId)</td><td class="desc">Event — fires on a double-click (two clicks within 300 ms). Mutually exclusive with <code>OnSingleClick</code>.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
   <section id="ex-extend">
     <h2>Example — Extending the Class</h2>
     <p>Derive from <code>KanbanWrapperClass</code> to keep your event handling clean and type-safe, and to add domain-specific helpers.</p>
@@ -943,6 +985,120 @@ ProjectKanban.SaveCardColumn PROCEDURE(STRING pCardId, STRING pColumnId)
     Tasks.Column = CLIP(pColumnId)
     PUT(Tasks)
   END</code></pre>
+  </section>
+
+  <section id="ex-wip">
+    <h2>Example — WIP Limits</h2>
+    <p>WIP (Work In Progress) limits visually warn when a column is over capacity. The count badge in the column header shows <code>count/limit</code> and changes colour automatically as cards are added, removed, or dragged.</p>
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
+MyKanban.AddColumn('todo',       'To Do',       0)
+MyKanban.AddColumn('inprogress', 'In Progress', 0)
+MyKanban.AddColumn('review',     'In Review',   0)
+MyKanban.AddColumn('done',       'Done',        0)
+
+! Set WIP limits (0 = no limit)
+MyKanban.SetColumnWipLimit('todo',       10)   ! amber at 10, red above 10
+MyKanban.SetColumnWipLimit('inprogress',  3)   ! tight limit for focus
+MyKanban.SetColumnWipLimit('review',      2)
+! 'done' has no limit
+
+! Load cards from a queue...
+LOOP a = 1 TO RECORDS(TaskQ)
+  GET(TaskQ, a)
+  MyKanban.AddCard(TaskQ.Id, TaskQ.Column, TaskQ.Title, TaskQ.Description)
+END
+
+! ── Check WIP limit in OnCardMoved ─────────────────────────────
+MyKanban.OnCardMoved PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColumn)
+Count                   LONG
+  CODE
+  ! Warn if the destination column is over its WIP limit
+  Count = MyKanban.GetColumnCardCount(pToColumn)
+  IF Count > 3 AND CLIP(pToColumn) = 'inprogress'
+    MESSAGE('WIP limit exceeded for In Progress (' & Count & ' cards). ' &|
+            'Consider completing or moving a card before adding more.',  |
+            'WIP Warning', ICON:Exclamation)
+  END
+  ! Persist to data as normal
+  UpdateTaskColumn(CLIP(pCardId), CLIP(pToColumn))</code></pre>
+  </section>
+
+  <section id="ex-clicks">
+    <h2>Example — Single and Double Click Events</h2>
+    <p><code>OnSingleClick</code> fires after a 300 ms pause with no second click. <code>OnDoubleClick</code> fires immediately on the second click and cancels the pending single-click — so the two events are always mutually exclusive.</p>
+    <pre><code class="language-clarion">! ── Override in your derived class or the generated stub ───────
+
+MyKanban.OnSingleClick PROCEDURE(STRING pCardId)
+  CODE
+  ! Highlight the card and show a summary panel
+  MyKanban.SetCardBorderColor(pCardId, 03498DBH)   ! blue border = selected
+  ShowCardSummary(CLIP(pCardId))
+
+MyKanban.OnDoubleClick PROCEDURE(STRING pCardId)
+  CODE
+  ! Open the full card editor (Trello-style)
+  OpenCardEditor(CLIP(pCardId))</code></pre>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <p>A common pattern: use <code>OnSingleClick</code> to <em>select</em> a card (highlight border, populate a side panel) and <code>OnDoubleClick</code> to <em>open</em> it for editing. Only implement the events your app actually needs — both handlers default to empty virtuals.</p>
+    </div>
+
+    <p>To implement card selection — deselect the previously selected card and select the new one:</p>
+    <pre><code class="language-clarion">! ── In your derived class ──────────────────────────────────────
+SelectedCardId  STRING(50)
+
+MyKanban.OnSingleClick PROCEDURE(STRING pCardId)
+  CODE
+  ! Clear previous selection
+  IF CLIP(SelectedCardId) <> ''
+    MyKanban.SetCardBorderColor(SelectedCardId, -1)   ! -1 = remove border
+  END
+  ! Select the new card
+  SelectedCardId = pCardId
+  MyKanban.SetCardBorderColor(pCardId, 03498DBH)      ! blue border</code></pre>
+  </section>
+
+  <section id="ex-movecard">
+    <h2>Example — Programmatic Move and Card Visibility</h2>
+    <p><code>MoveCard</code> moves a card between columns without user interaction and fires <code>OnCardMoved</code> exactly as a drag would. <code>SetCardVisible</code> shows or hides a card independently of the filter panel — useful for archiving or temporarily suppressing cards without losing their data.</p>
+    <pre><code class="language-clarion">! ── Move a card programmatically (e.g. from a button click) ───
+MyKanban.MoveCard('task-001', 'done')
+! OnCardMoved fires with pFromColumn = old column, pToColumn = 'done'
+! Optionally style it as done:
+MyKanban.SetCardBackgroundColor('task-001', 027AE60H)  ! green
+MyKanban.SetCardProgress('task-001', 100)
+
+! ── Batch-complete all In Progress cards ───────────────────────
+MyKanban.OnCardMoved PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColumn)
+  CODE
+  IF CLIP(pToColumn) = 'done'
+    MyKanban.SetCardProgress(pCardId, 100)
+    MyKanban.SetCardBackgroundColor(pCardId, 027AE60H)
+    UpdateTaskAsDone(CLIP(pCardId))   ! persist to DB
+  END
+
+! ── Hide / show cards without removing them ───────────────────
+! Hide all cards assigned to a user who is on leave
+LOOP a = 1 TO RECORDS(TaskQ)
+  GET(TaskQ, a)
+  IF CLIP(TaskQ.Assignee) = 'Jane Doe'
+    MyKanban.SetCardVisible(TaskQ.Id, 0)   ! 0 = hidden
+  END
+END
+
+! Show them again when she returns
+LOOP a = 1 TO RECORDS(TaskQ)
+  GET(TaskQ, a)
+  IF CLIP(TaskQ.Assignee) = 'Jane Doe'
+    MyKanban.SetCardVisible(TaskQ.Id, 1)   ! 1 = visible
+  END
+END
+
+! SetCardVisible and the filter panel are independent:
+! A card hidden by SetCardVisible stays hidden even if the filter
+! would otherwise show it. A card shown by SetCardVisible is still
+! subject to filter panel rules.</code></pre>
   </section>
 
 </main>

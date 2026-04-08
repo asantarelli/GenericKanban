@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -51,9 +52,11 @@ namespace GenericKanban
         private bool _pageReady;
         private readonly List<string> _pending = new List<string>();
 
-        // Shadow state so GetCardColumn() can return synchronously
-        private readonly Dictionary<string, string> _cardColumn =
-            new Dictionary<string, string>(StringComparer.Ordinal);
+        // Shadow state so GetCardColumn() can return synchronously.
+        // ConcurrentDictionary allows safe reads from Clarion's STA thread
+        // while writes happen on the UI thread.
+        private readonly ConcurrentDictionary<string, string> _cardColumn =
+            new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
 
         // Shadow state for radio group values: cardId → (groupId → itemId)
         private readonly Dictionary<string, Dictionary<string, string>> _radioValues =
@@ -81,6 +84,9 @@ namespace GenericKanban
             var path = Path.Combine(_dllDir, "GenericKanban", simpleName + ".dll");
             return File.Exists(path) ? Assembly.LoadFrom(path) : null;
         }
+
+        // Stored so we can delete it on Dispose (WebView2 writes profile data here)
+        private string _userDataPath;
 
         // ----------------------------------------------------------------
         // Loading panel - visible during WebView2 cold-start
@@ -147,11 +153,11 @@ namespace GenericKanban
                 // %TEMP% is always local, always writable, and is per-user in Citrix
                 // multi-session environments â€” avoiding both network-share slowness
                 // and multi-user folder conflicts.
-                var userDataPath = Path.Combine(
+                _userDataPath = Path.Combine(
                     Path.GetTempPath(),
                     $"GenericKanban_WebView2Data_{System.Diagnostics.Process.GetCurrentProcess().Id}_{Handle}");
 
-                var env = await CoreWebView2Environment.CreateAsync(null, userDataPath);
+                var env = await CoreWebView2Environment.CreateAsync(null, _userDataPath);
                 await _webView.EnsureCoreWebView2Async(env);
 
                 _webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
@@ -190,10 +196,13 @@ namespace GenericKanban
                 switch (type)
                 {
                     case "ready":
-                        _pageReady = true;
-                        foreach (var s in _pending)
-                            _ = _webView.CoreWebView2.ExecuteScriptAsync(s);
-                        _pending.Clear();
+                        lock (_pending)
+                        {
+                            _pageReady = true;
+                            foreach (var s in _pending)
+                                _ = _webView.CoreWebView2.ExecuteScriptAsync(s);
+                            _pending.Clear();
+                        }
 
                         // Board is ready and all queued setup scripts have been sent â€”
                         // hide the loading panel so the board appears cleanly.
@@ -253,6 +262,10 @@ namespace GenericKanban
             action();
         }
 
+        // Self-marshalling: if called from a non-UI thread, the call is queued
+        // via BeginInvoke and runs on the UI thread. Callers that also mutate
+        // shadow state (_cardColumn, _radioValues) atomically with Exec must
+        // wrap the entire operation in RunOnUIThread themselves.
         private void Exec(string script)
         {
             if (InvokeRequired)
@@ -261,10 +274,13 @@ namespace GenericKanban
                 BeginInvoke(new Action<string>(Exec), script);
                 return;
             }
-            if (_pageReady && _webView?.CoreWebView2 != null)
-                _ = _webView.CoreWebView2.ExecuteScriptAsync(script);
-            else
-                _pending.Add(script);
+            lock (_pending)
+            {
+                if (_pageReady && _webView?.CoreWebView2 != null)
+                    _ = _webView.CoreWebView2.ExecuteScriptAsync(script);
+                else
+                    _pending.Add(script);
+            }
         }
 
         // JSON-encode a string safely for embedding inside a JS call
@@ -287,14 +303,7 @@ namespace GenericKanban
             RunOnUIThread(() =>
             {
                 Exec($"kanban.removeColumn({J(columnId)})");
-                var toRemove = new List<string>();
-                foreach (var kv in _cardColumn)
-                    if (kv.Value == columnId) toRemove.Add(kv.Key);
-                foreach (var id in toRemove)
-                {
-                    _cardColumn.Remove(id);
-                    _radioValues.Remove(id);
-                }
+                RemoveCardsInColumn(columnId);
             });
         }
 
@@ -333,6 +342,40 @@ namespace GenericKanban
             Exec($"kanban.setTextSearchEnabled({(enabled != 0 ? "true" : "false")})");
         }
 
+        // ----------------------------------------------------------------
+        // IGenericKanban -- New high-value features
+        // ----------------------------------------------------------------
+
+        public void MoveCard(string cardId, string columnId)
+        {
+            RunOnUIThread(() =>
+            {
+                Exec($"kanban.moveCard({J(cardId)},{J(columnId)})");
+                // Update shadow state immediately so GetCardColumn returns the right
+                // value even before the JS CardMoved event arrives.
+                _cardColumn[cardId] = columnId;
+            });
+        }
+
+        public void SetColumnWipLimit(string columnId, int maxCards)
+        {
+            Exec($"kanban.setColumnWipLimit({J(columnId)},{maxCards})");
+        }
+
+        public int GetColumnCardCount(string columnId)
+        {
+            // Computed from C# shadow state — no JS round-trip needed.
+            int count = 0;
+            foreach (var kv in _cardColumn)
+                if (kv.Value == columnId) count++;
+            return count;
+        }
+
+        public void SetCardVisible(string cardId, int visible)
+        {
+            Exec($"kanban.setCardVisible({J(cardId)},{(visible != 0 ? "true" : "false")})");
+        }
+
         public void SetColumnBodyColor(string columnId, int color)
         {
             Exec($"kanban.setColumnBodyColor({J(columnId)},{J(ColorToHex(color))})");
@@ -356,7 +399,7 @@ namespace GenericKanban
             RunOnUIThread(() =>
             {
                 Exec($"kanban.removeCard({J(cardId)})");
-                _cardColumn.Remove(cardId);
+                _cardColumn.TryRemove(cardId, out _);
                 _radioValues.Remove(cardId);
             });
         }
@@ -366,15 +409,22 @@ namespace GenericKanban
             RunOnUIThread(() =>
             {
                 Exec($"kanban.clearColumnCards({J(columnId)})");
-                var toRemove = new List<string>();
-                foreach (var kv in _cardColumn)
-                    if (kv.Value == columnId) toRemove.Add(kv.Key);
-                foreach (var id in toRemove)
-                {
-                    _cardColumn.Remove(id);
-                    _radioValues.Remove(id);
-                }
+                RemoveCardsInColumn(columnId);
             });
+        }
+
+        // Removes all shadow-state entries for cards that belong to columnId.
+        // Must be called on the UI thread (RunOnUIThread) since _radioValues is not thread-safe.
+        private void RemoveCardsInColumn(string columnId)
+        {
+            var toRemove = new List<string>();
+            foreach (var kv in _cardColumn)
+                if (kv.Value == columnId) toRemove.Add(kv.Key);
+            foreach (var id in toRemove)
+            {
+                _cardColumn.TryRemove(id, out _);
+                _radioValues.Remove(id);
+            }
         }
 
         public string GetCardColumn(string cardId)
@@ -562,6 +612,11 @@ namespace GenericKanban
             {
                 _webView?.Dispose();
                 _loadingFont?.Dispose();
+
+                // Clean up the WebView2 user-data folder. WebView2 may still hold
+                // file locks briefly after Dispose, so failures are swallowed silently.
+                if (_userDataPath != null)
+                    try { Directory.Delete(_userDataPath, recursive: true); } catch { }
             }
             base.Dispose(disposing);
         }

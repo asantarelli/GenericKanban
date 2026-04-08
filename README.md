@@ -84,10 +84,16 @@ A `KanbanWrapperClass` is provided in `TestKanban/` (see `KanbanWrapper.inc` / `
 ## Building from Source
 
 1. Clone or download this repository
-2. Open `GenericKanban.csproj` in Visual Studio 2022
+2. Open `GenericKanban.csproj` in Visual Studio 2022, or run:
+   ```
+   dotnet build -c Release
+   ```
 3. Build in Release / x86 configuration
 
-Or use the ClarionCOM CLI inside the Clarion IDE Copilot terminal.
+> **Frontend changes:** The Kanban UI is written in TypeScript (`frontend/src/app.ts`).
+> If you modify `app.ts`, **Node.js 18+** must be on your PATH — MSBuild will automatically run
+> `npm ci` (first build only) and `esbuild` to regenerate `wwwroot/controls/generickanban/app.js`.
+> If you are only making C# changes, the committed `app.js` is used as-is without Node.
 
 ## License
 

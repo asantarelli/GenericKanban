@@ -21,3 +21,6 @@ packages/
 # OS files
 Thumbs.db
 .DS_Store
+
+# Frontend tooling (Node.js 18+ required to rebuild after editing app.ts)
+frontend/node_modules/

@@ -230,5 +230,38 @@ namespace GenericKanban
         /// <summary>Enable or disable the text search input in the filter panel (default: enabled).</summary>
         [DispId(41)]
         void SetTextSearchEnabled(int enabled);
+
+        // ── New high-value features ───────────────────────────────────────────
+
+        /// <summary>
+        /// Moves a card to a different column programmatically.
+        /// Fires the CardMoved event identically to a user drag-drop.
+        /// No-op if the card is already in the target column.
+        /// </summary>
+        [DispId(42)]
+        void MoveCard(string cardId, string columnId);
+
+        /// <summary>
+        /// Sets a WIP (Work In Progress) limit for a column.
+        /// The count badge turns amber when the column is at the limit and red when exceeded.
+        /// Pass 0 to remove the limit.
+        /// </summary>
+        [DispId(43)]
+        void SetColumnWipLimit(string columnId, int maxCards);
+
+        /// <summary>
+        /// Returns the number of cards currently in the specified column.
+        /// Computed from C# shadow state — safe to call at any time.
+        /// Returns 0 if the column does not exist or is empty.
+        /// </summary>
+        [DispId(44)]
+        int GetColumnCardCount(string columnId);
+
+        /// <summary>
+        /// Shows (1) or hides (0) a card without removing it from the board.
+        /// Independent of the filter panel — both systems can coexist.
+        /// </summary>
+        [DispId(45)]
+        void SetCardVisible(string cardId, int visible);
     }
 }

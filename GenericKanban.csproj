@@ -80,6 +80,20 @@
           Condition="Exists('$(OutputPath)runtimes\win-x86\native\WebView2Loader.dll')" />
   </Target>
 
+  <!-- Build TypeScript frontend before the .NET build.
+       Inputs/Outputs enables incremental: only runs when app.ts changes.
+       DesignTimeBuild guard prevents VS IntelliSense builds from invoking npm. -->
+  <Target Name="BuildFrontend" BeforeTargets="Build"
+          Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="$(ProjectDir)frontend\src\app.ts"
+          Outputs="$(ProjectDir)wwwroot\controls\generickanban\app.js">
+    <Exec Command="npm ci"
+          WorkingDirectory="$(ProjectDir)frontend"
+          Condition="!Exists('$(ProjectDir)frontend\node_modules')" />
+    <Exec Command="npm run build"
+          WorkingDirectory="$(ProjectDir)frontend" />
+  </Target>
+
   <Target Name="CopyWwwrootToClarion" AfterTargets="CopyDependenciesToClarion">
     <MakeDir Directories="$(ProjectDir)Clarion\accessory\resources\wwwroot"
              Condition="!Exists('$(ProjectDir)Clarion\accessory\resources\wwwroot')" />

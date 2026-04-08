@@ -94,6 +94,10 @@ SetCardProgress           PROCEDURE(STRING pCardId, LONG pProgress),VIRTUAL
 SetCardOverdue            PROCEDURE(STRING pCardId, LONG pOverdue),VIRTUAL
 SetCardStatusBar          PROCEDURE(STRING pCardId, STRING pLabel, LONG pColor),VIRTUAL
 MoveCardToTop             PROCEDURE(STRING pCardId),VIRTUAL
+MoveCard                  PROCEDURE(STRING pCardId, STRING pColumnId),VIRTUAL
+SetColumnWipLimit         PROCEDURE(STRING pColumnId, LONG pMaxCards),VIRTUAL
+GetColumnCardCount        PROCEDURE(STRING pColumnId), LONG,VIRTUAL
+SetCardVisible            PROCEDURE(STRING pCardId, LONG pVisible),VIRTUAL
 
 ! -- Board appearance --
 SetBoardBackgroundColor   PROCEDURE(LONG pColor),VIRTUAL

@@ -262,6 +262,24 @@ KanbanWrapperClass.MoveCardToTop            PROCEDURE(STRING pCardId)
   CODE
   SELF.Ctrl{'MoveCardToTop(' & SELF.Q_(pCardId) & ')'}
 
+KanbanWrapperClass.MoveCard                 PROCEDURE(STRING pCardId, STRING pColumnId)
+  CODE
+  SELF.Ctrl{'MoveCard(' & SELF.Q_(pCardId) & ',' & SELF.Q_(pColumnId) & ')'}
+
+KanbanWrapperClass.SetColumnWipLimit        PROCEDURE(STRING pColumnId, LONG pMaxCards)
+  CODE
+  SELF.Ctrl{'SetColumnWipLimit(' & SELF.Q_(pColumnId) & ',' & pMaxCards & ')'}
+
+KanbanWrapperClass.GetColumnCardCount       PROCEDURE(STRING pColumnId)
+ReturnVal                                     LONG
+  CODE
+  ReturnVal = SELF.Ctrl{'GetColumnCardCount(' & SELF.Q_(pColumnId) & ')'}
+  RETURN ReturnVal
+
+KanbanWrapperClass.SetCardVisible           PROCEDURE(STRING pCardId, LONG pVisible)
+  CODE
+  SELF.Ctrl{'SetCardVisible(' & SELF.Q_(pCardId) & ',' & pVisible & ')'}
+
 ! ---------------------------------------------------------------------------
 ! Board appearance
 ! ---------------------------------------------------------------------------

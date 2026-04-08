@@ -1,0 +1,13 @@
+{
+  "name": "generickanban-frontend",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/app.ts --bundle --format=iife --target=es2017 --outfile=../wwwroot/controls/generickanban/app.js",
+    "watch": "esbuild src/app.ts --bundle --format=iife --target=es2017 --outfile=../wwwroot/controls/generickanban/app.js --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}

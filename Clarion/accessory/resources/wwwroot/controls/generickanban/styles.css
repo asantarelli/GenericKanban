@@ -137,8 +137,20 @@ html, body {
   color: #172b4d;
 }
 
+.kv-row {
+  cursor: pointer;
+}
+
 .kv-row:hover td {
   background: #f8f9ff;
+}
+
+.kv-row--selected td {
+  background: #dce8ff;
+}
+
+.kv-row--selected:hover td {
+  background: #dce8ff;
 }
 
 .kv-card-title {
@@ -411,6 +423,12 @@ html, body {
 
 /* Read-only mode - no drag cursor */
 .board-readonly .card { cursor: default; }
+
+/* WIP limit indicators — amber at limit, red over limit */
+.column-header.wip-warn { background-color: #e67e22 !important; }
+.column-header.wip-over { background-color: #c0392b !important; }
+body.dark .column-header.wip-warn { background-color: #b7590a !important; }
+body.dark .column-header.wip-over { background-color: #922b21 !important; }
 
 
 
@@ -694,6 +712,8 @@ body.dark .kv-table thead tr   { background: #2d333b; }
 body.dark .kv-table th  { color: #768390; border-bottom-color: #444c56; }
 body.dark .kv-table td  { color: #cdd9e5; border-bottom-color: #373e47; }
 body.dark .kv-row:hover td     { background: #2d333b; }
+body.dark .kv-row--selected td          { background: #1c3a5e; }
+body.dark .kv-row--selected:hover td    { background: #1c3a5e; }
 body.dark .kv-progress  { background: rgba(205,217,229,.1); }
 body.dark .kv-progress-pct,
 body.dark .kv-body      { color: #768390; }

@@ -34,9 +34,9 @@ namespace GenericKanban
         [DispId(3)]
         void ContextMenuSelected(string cardId, string itemId);
         /// <summary>
-        /// Fired when the user clicks a card without dragging (Trello-style open).
+        /// Fired when the user double-clicks a card (two clicks within 300 ms).
         /// </summary>
-        /// <param name="cardId">ID of the card that was clicked.</param>
+        /// <param name="cardId">ID of the card that was double-clicked.</param>
         [DispId(4)]
         void CardDoubleClick(string cardId);
 
