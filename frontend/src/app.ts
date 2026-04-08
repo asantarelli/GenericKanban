@@ -83,7 +83,51 @@ const kanban = {
   _wipLimits:      {} as Record<string, number>,
   _selectedTableRow: null as HTMLElement | null,
 
+  _dragScrollRaf:  0,
+  _dragPointerX:   0,
+
   // ── Sortable ───────────────────────────────────────────────────────────────
+
+  _startDragScroll(): void {
+    const board = document.getElementById('board')!;
+    const ZONE  = 100;   // px from edge that triggers scrolling
+    const MAX   = 18;    // max px scrolled per frame
+
+    const loop = (): void => {
+      const rect  = board.getBoundingClientRect();
+      const x     = this._dragPointerX;
+      const distR = rect.right  - x;
+      const distL = x           - rect.left;
+
+      if (distR < ZONE && distR > 0) {
+        board.scrollLeft += MAX * (1 - distR / ZONE);
+      } else if (distL < ZONE && distL > 0) {
+        board.scrollLeft -= MAX * (1 - distL / ZONE);
+      }
+      this._dragScrollRaf = requestAnimationFrame(loop);
+    };
+
+    const track = (e: PointerEvent): void => { this._dragPointerX = e.clientX; };
+    board.addEventListener('pointermove', track);
+    document.addEventListener('pointermove', track);
+
+    // Store cleanup on the board element so onEnd can remove it
+    (board as any)._dragScrollCleanup = (): void => {
+      board.removeEventListener('pointermove', track);
+      document.removeEventListener('pointermove', track);
+      cancelAnimationFrame(this._dragScrollRaf);
+    };
+
+    this._dragScrollRaf = requestAnimationFrame(loop);
+  },
+
+  _stopDragScroll(): void {
+    const board = document.getElementById('board');
+    if (board && (board as any)._dragScrollCleanup) {
+      (board as any)._dragScrollCleanup();
+      (board as any)._dragScrollCleanup = null;
+    }
+  },
 
   _initSortable(col: Column): void {
     col.sortable = new Sortable(col.cardList, {
@@ -94,7 +138,9 @@ const kanban = {
       chosenClass: 'card-chosen',
       dragClass: 'card-drag',
       emptyInsertThreshold: 20,
+      onStart: (): void => { kanban._startDragScroll(); },
       onEnd(evt: SortableEvent): void {
+        kanban._stopDragScroll();
         const cardId     = evt.item.dataset.cardId!;
         const fromColumn = evt.from.dataset.colId!;
         const toColumn   = evt.to.dataset.colId!;

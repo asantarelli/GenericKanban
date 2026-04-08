@@ -34,7 +34,44 @@
     _singleClickTimer: void 0,
     _wipLimits: {},
     _selectedTableRow: null,
+    _dragScrollRaf: 0,
+    _dragPointerX: 0,
     // ── Sortable ───────────────────────────────────────────────────────────────
+    _startDragScroll() {
+      const board = document.getElementById("board");
+      const ZONE = 100;
+      const MAX = 18;
+      const loop = () => {
+        const rect = board.getBoundingClientRect();
+        const x = this._dragPointerX;
+        const distR = rect.right - x;
+        const distL = x - rect.left;
+        if (distR < ZONE && distR > 0) {
+          board.scrollLeft += MAX * (1 - distR / ZONE);
+        } else if (distL < ZONE && distL > 0) {
+          board.scrollLeft -= MAX * (1 - distL / ZONE);
+        }
+        this._dragScrollRaf = requestAnimationFrame(loop);
+      };
+      const track = (e) => {
+        this._dragPointerX = e.clientX;
+      };
+      board.addEventListener("pointermove", track);
+      document.addEventListener("pointermove", track);
+      board._dragScrollCleanup = () => {
+        board.removeEventListener("pointermove", track);
+        document.removeEventListener("pointermove", track);
+        cancelAnimationFrame(this._dragScrollRaf);
+      };
+      this._dragScrollRaf = requestAnimationFrame(loop);
+    },
+    _stopDragScroll() {
+      const board = document.getElementById("board");
+      if (board && board._dragScrollCleanup) {
+        board._dragScrollCleanup();
+        board._dragScrollCleanup = null;
+      }
+    },
     _initSortable(col) {
       col.sortable = new Sortable(col.cardList, {
         group: "kanban-cards",
@@ -44,7 +81,11 @@
         chosenClass: "card-chosen",
         dragClass: "card-drag",
         emptyInsertThreshold: 20,
+        onStart: () => {
+          kanban._startDragScroll();
+        },
         onEnd(evt) {
+          kanban._stopDragScroll();
           const cardId = evt.item.dataset.cardId;
           const fromColumn = evt.from.dataset.colId;
           const toColumn = evt.to.dataset.colId;
