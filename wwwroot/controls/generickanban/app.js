@@ -23,6 +23,8 @@
     _pendingCtxCardId: null,
     _pendingCtxX: 0,
     _pendingCtxY: 0,
+    _pendingCtxSeq: 0,
+    // monotonic counter; guards against same-card stale calls
     _sortKeys: [],
     _tableSortInit: false,
     _searchText: "",
@@ -185,10 +187,11 @@
       el.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         e.stopPropagation();
+        const seq = ++kanban._pendingCtxSeq;
         kanban._pendingCtxCardId = cardId;
         kanban._pendingCtxX = e.clientX;
         kanban._pendingCtxY = e.clientY;
-        window.chrome.webview.postMessage(JSON.stringify({ type: "CardRightClick", cardId }));
+        window.chrome.webview.postMessage(JSON.stringify({ type: "CardRightClick", cardId, seq }));
       });
     },
     _rebuildCard(cardId) {
@@ -205,10 +208,12 @@
       this._hideContextMenu();
     },
     // Called from C# after the CardRightClick event has been handled.
-    // Stale-call guard: if a second right-click happened before C# responded,
-    // _pendingCtxCardId will no longer match and the call is ignored.
-    showContextMenu(cardId) {
-      if (cardId !== this._pendingCtxCardId) return;
+    // Stale-call guard: seq must match the latest right-click token, and the
+    // card must still exist. Prevents showing a menu for an outdated right-click
+    // even when the same card is right-clicked multiple times before C# responds.
+    showContextMenu(cardId, seq) {
+      if (seq !== this._pendingCtxSeq) return;
+      if (!this._cards[cardId]) return;
       this._pendingCtxCardId = null;
       this._showContextMenu(this._pendingCtxX, this._pendingCtxY, cardId);
     },
@@ -1017,6 +1022,8 @@
     if (d) d.classList.remove("view-dropdown--open");
   });
   document.addEventListener("contextmenu", () => {
+    kanban._pendingCtxCardId = null;
+    kanban._pendingCtxSeq = 0;
     kanban._hideContextMenu();
   });
   window.kanban = kanban;

@@ -65,6 +65,11 @@ namespace GenericKanban
         private readonly Dictionary<string, Dictionary<string, string>> _radioValues =
             new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
 
+        // Seq token for the last CardRightClick — passed back to JS in ShowContextMenu
+        // so the stale-call guard works even when the same card is right-clicked twice
+        // before C# responds.
+        private int _pendingRightClickSeq;
+
         // ----------------------------------------------------------------
         // Dependency isolation -- load our managed deps from a private
         // subfolder so version conflicts with other COM controls are avoided.
@@ -247,6 +252,7 @@ namespace GenericKanban
 
                     case "CardRightClick":
                         var rclickCardId = (string)msg["cardId"];
+                        _pendingRightClickSeq = msg["seq"] != null ? (int)msg["seq"] : 0;
                         try { CardRightClick?.Invoke(rclickCardId); }
                         catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban CardRightClick event sink error: {0}", ex); }
                         break;
@@ -388,7 +394,7 @@ namespace GenericKanban
         [DispId(46)]
         public void ShowContextMenu(string cardId)
         {
-            Exec($"kanban.showContextMenu({J(cardId)})");
+            Exec($"kanban.showContextMenu({J(cardId)},{_pendingRightClickSeq})");
         }
 
         public void SetColumnBodyColor(string columnId, int color)
