@@ -18,33 +18,33 @@ Main      PROCEDURE()
 KanbanProcess_Kanban    PROCEDURE
           END
 
-Window      WINDOW('GenericKanban Feature Demo'),AT(,,860,540),FONT('Segoe UI',9),RESIZE,GRAY,MAX,SYSTEM,IMM
-              OLE,AT(2,2,615,496),USE(?KanbanOLE)
+Window      WINDOW('GenericKanban Feature Demo'),AT(,,741,397),GRAY,IMM,SYSTEM, |
+              FONT('Segoe UI',9)
+              OLE,AT(2,2,615,374),USE(?KanbanOLE)
               END
-              
-              STRING(''),AT(2,500,615,14),USE(?StatusLabel)
-              ! ---- Card update buttons ----
-              BUTTON('Update c1 Title / Body / Tag'),AT(620,2,237,14),USE(?BtnUpdateCard)
-              BUTTON('Toggle c1 Visible'),AT(620,18,237,14),USE(?BtnToggleVisible)
-              BUTTON('Color c1 (Bg / Text / Border)'),AT(620,34,237,14),USE(?BtnColorCard)
-              BUTTON('Set c1 Assignee + DueDate'),AT(620,50,237,14),USE(?BtnAssignee)
-              BUTTON('Toggle c1 Overdue'),AT(620,66,237,14),USE(?BtnOverdue)
-              ! ---- Move buttons ----
-              BUTTON('Move c1 -> Studio'),AT(620,86,237,14),USE(?BtnMoveToStudio)
-              BUTTON('Move c2 -> Complete'),AT(620,102,237,14),USE(?BtnMoveToComplete)
-              BUTTON('Move c1 to Top'),AT(620,118,237,14),USE(?BtnMoveToTop)
-              ! ---- Query buttons ----
-              BUTTON('Query: c1 Column + Count'),AT(620,138,237,14),USE(?BtnCardInfo)
-              BUTTON('Query: c1 Radio Value'),AT(620,154,237,14),USE(?BtnRadioValue)
-              ! ---- Board toggle buttons ----
-              BUTTON('Toggle Dark Mode'),AT(620,174,237,14),USE(?BtnDarkMode)
-              BUTTON('Toggle Read-Only'),AT(620,190,237,14),USE(?BtnReadOnly)
-              BUTTON('Toggle Column Width'),AT(620,206,237,14),USE(?BtnColWidth)
-              ! ---- Manage buttons ----
-              BUTTON('Add New Card (c7)'),AT(620,226,237,14),USE(?BtnAddCard)
-              BUTTON('Clear Print Column'),AT(620,242,237,14),USE(?BtnClearColumn)
-              BUTTON('Remove c6'),AT(620,258,237,14),USE(?BtnRemoveCard)
-              BUTTON('&Close'),AT(777,518,80,14),USE(?CloseButton),DEFAULT
+              STRING(''),AT(2,379,615,14),USE(?StatusLabel)
+    ! ---- Card update buttons ----
+              BUTTON('Update BUG-001 Title / Body'),AT(620,2,115,14),USE(?BtnUpdateCard)
+              BUTTON('Toggle BUG-001 Visible'),AT(620,18,115,14),USE(?BtnToggleVisible)
+              BUTTON('Color BUG-001 (Bg/Text/Border)'),AT(620,34,115,14),USE(?BtnColorCard)
+              BUTTON('Reassign BUG-001'),AT(620,50,115,14),USE(?BtnAssignee)
+              BUTTON('Toggle BUG-001 Overdue'),AT(620,66,115,14),USE(?BtnOverdue)
+    ! ---- Move buttons ----
+              BUTTON('Move BUG-001 -> Triage'),AT(620,86,115,14),USE(?BtnMoveToTriage)
+              BUTTON('Move BUG-002 -> Testing'),AT(620,102,115,14),USE(?BtnMoveToTesting)
+              BUTTON('Move BUG-001 to Top'),AT(620,118,115,14),USE(?BtnMoveToTop)
+    ! ---- Query buttons ----
+              BUTTON('Query: BUG-001 Column'),AT(620,138,115,14),USE(?BtnCardInfo)
+              BUTTON('Query: BUG-001 Severity'),AT(620,154,115,14),USE(?BtnRadioValue)
+    ! ---- Board toggle buttons ----
+              BUTTON('Toggle Dark Mode'),AT(620,174,115,14),USE(?BtnDarkMode)
+              BUTTON('Toggle Read-Only'),AT(620,190,115,14),USE(?BtnReadOnly)
+              BUTTON('Toggle Column Width'),AT(620,206,115,14),USE(?BtnColWidth)
+    ! ---- Manage buttons ----
+              BUTTON('Add New Card (c7)'),AT(620,226,115,14),USE(?BtnAddCard)
+              BUTTON('Clear Testing Column'),AT(620,242,115,14),USE(?BtnClearColumn)
+              BUTTON('Remove BUG-005'),AT(620,258,115,14),USE(?BtnRemoveCard)
+              BUTTON('&Close'),AT(620,282,115,14),USE(?CloseButton),DEFAULT
             END
 Kanban_Event    EQUATE(Event:User+2000+?KanbanOLE)
 
@@ -84,62 +84,62 @@ C7Added     LONG
 
       ! ---- Card updates ----
       OF ?BtnUpdateCard
-        Kanban.SetCardTitle('c1', 'Login Bug - FIXED')
-        Kanban.SetCardBody('c1', 'Resolved in v2.1. Chrome and Firefox tested.')
-        Kanban.SetCardTag('c1', 'Bug Fix', 027AE60h)
+        Kanban.SetCardTitle('c1', 'BUG-001 - FIXED')
+        Kanban.SetCardBody('c1', 'Root cause: missing activity heartbeat. Fix verified on Chrome, Edge and Firefox.')
+        Kanban.SetCardTag('c1', 'Resolved', 027AE60h)
         Kanban.SetCardProgress('c1', 100)
-        ?StatusLabel{PROP:Text} = 'c1: title, body, tag and progress updated'
+        ?StatusLabel{PROP:Text} = 'BUG-001: title, body, tag and progress updated'
 
       OF ?BtnToggleVisible
         C1Visible = 1 - C1Visible
         Kanban.SetCardVisible('c1', C1Visible)
         IF C1Visible
-          ?StatusLabel{PROP:Text} = 'c1 is now visible'
+          ?StatusLabel{PROP:Text} = 'BUG-001 is now visible'
         ELSE
-          ?StatusLabel{PROP:Text} = 'c1 is now hidden'
+          ?StatusLabel{PROP:Text} = 'BUG-001 is now hidden'
         END
 
       OF ?BtnColorCard
-        Kanban.SetCardBackgroundColor('c1', 0EBF5FBh)
-        Kanban.SetCardTextColor('c1', 01A252Fh)
-        Kanban.SetCardBorderColor('c1', 02980B9h)
-        ?StatusLabel{PROP:Text} = 'c1: background, text and border colors applied'
+        Kanban.SetCardBackgroundColor('c1', 0FDEDECH)
+        Kanban.SetCardTextColor('c1', 078281Bh)
+        Kanban.SetCardBorderColor('c1', 0E74C3Ch)
+        ?StatusLabel{PROP:Text} = 'BUG-001: background, text and border colors applied'
 
       OF ?BtnAssignee
         Kanban.SetCardAssignee('c1', 'Mark')
         Kanban.SetCardDueDate('c1', '30/06/26')
         Kanban.SetCardFilterValue('c1', 'assignee', 'mark')  ! Keep assignee filter in sync
-        ?StatusLabel{PROP:Text} = 'c1: reassigned to Mark, due date 30/06/26'
+        ?StatusLabel{PROP:Text} = 'BUG-001: reassigned to Mark, due date 30/06/26'
 
       OF ?BtnOverdue
         C1Overdue = 1 - C1Overdue
         Kanban.SetCardOverdue('c1', C1Overdue)
         IF C1Overdue
-          ?StatusLabel{PROP:Text} = 'c1 flagged as overdue'
+          ?StatusLabel{PROP:Text} = 'BUG-001 flagged as overdue'
         ELSE
-          ?StatusLabel{PROP:Text} = 'c1 overdue flag cleared'
+          ?StatusLabel{PROP:Text} = 'BUG-001 overdue flag cleared'
         END
 
       ! ---- Move operations ----
-      OF ?BtnMoveToStudio
-        Kanban.MoveCard('c1', 'studio')
-        ?StatusLabel{PROP:Text} = 'c1 moved to Studio via MoveCard'
+      OF ?BtnMoveToTriage
+        Kanban.MoveCard('c1', 'triage')
+        ?StatusLabel{PROP:Text} = 'BUG-001 moved to Triage via MoveCard'
 
-      OF ?BtnMoveToComplete
-        Kanban.MoveCard('c2', 'complete')
-        ?StatusLabel{PROP:Text} = 'c2 moved to Complete via MoveCard'
+      OF ?BtnMoveToTesting
+        Kanban.MoveCard('c2', 'testing')
+        ?StatusLabel{PROP:Text} = 'BUG-002 moved to Testing via MoveCard'
 
       OF ?BtnMoveToTop
         Kanban.MoveCardToTop('c1')
-        ?StatusLabel{PROP:Text} = 'c1 moved to top of its current column'
+        ?StatusLabel{PROP:Text} = 'BUG-001 moved to top of its current column'
 
       ! ---- Queries ----
       OF ?BtnCardInfo
-        ?StatusLabel{PROP:Text} = 'c1 column: [' & Kanban.GetCardColumn('c1') & ']' & |
-          '  |  Not Started has ' & Kanban.GetColumnCardCount('notstarted') & ' card(s)'
+        ?StatusLabel{PROP:Text} = 'BUG-001 column: [' & Kanban.GetCardColumn('c1') & ']' & |
+          '  |  New has ' & Kanban.GetColumnCardCount('new') & ' card(s)'
 
       OF ?BtnRadioValue
-        ?StatusLabel{PROP:Text} = 'c1 priority: ' & Kanban.GetCardRadioValue('c1', 'status')
+        ?StatusLabel{PROP:Text} = 'BUG-001 severity: ' & Kanban.GetCardRadioValue('c1', 'status')
 
       ! ---- Board toggles ----
       OF ?BtnDarkMode
@@ -173,20 +173,20 @@ C7Added     LONG
       ! ---- Manage ----
       OF ?BtnAddCard
         IF C7Added = 0
-          Kanban.AddCard('c7', 'notstarted', 'New Card Added at Runtime', 'Added via the basic 4-param AddCard method')
+          Kanban.AddCard('c7', 'new', 'BUG-007: Null reference on empty search', 'Occurs when the search box is cleared and submitted.')
           C7Added = 1
-          ?StatusLabel{PROP:Text} = 'c7 added using 4-parameter AddCard'
+          ?StatusLabel{PROP:Text} = 'BUG-007 added using 4-parameter AddCard'
         ELSE
-          ?StatusLabel{PROP:Text} = 'c7 already exists on the board'
+          ?StatusLabel{PROP:Text} = 'BUG-007 already exists on the board'
         END
 
       OF ?BtnClearColumn
-        Kanban.ClearColumnCards('print')
-        ?StatusLabel{PROP:Text} = 'All cards cleared from the Print column'
+        Kanban.ClearColumnCards('testing')
+        ?StatusLabel{PROP:Text} = 'All cards cleared from the Testing column'
 
       OF ?BtnRemoveCard
         Kanban.RemoveCard('c6')
-        ?StatusLabel{PROP:Text} = 'c6 removed from board'
+        ?StatusLabel{PROP:Text} = 'BUG-005 removed from board'
 
       END  ! CASE ACCEPTED
     OF EVENT:CloseWindow
@@ -207,116 +207,123 @@ Kanban.OnPageReady    PROCEDURE()
   PARENT.OnPageReady()
 
   ! ---- Columns ----
-  SELF.AddColumn('notstarted', 'Not Started', 0607D8Bh)
-  SELF.AddColumn('studio',     'Studio',      000796Bh)
-  SELF.AddColumn('print',      'Print',       0795548h)
-  SELF.AddColumn('finishing',  'Finishing',   06A1B9Ah)
-  SELF.AddColumn('complete',   'Complete',    0C0392Bh)
-  SELF.AddColumn('invoiced',   'Invoiced',    01A3A6Bh)
+  SELF.AddColumn('new',        'New',         02980B9h)
+  SELF.AddColumn('triage',     'Triage',      0D35400h)
+  SELF.AddColumn('inprogress', 'In Progress', 06C3483h)
+  SELF.AddColumn('review',     'In Review',   000796Bh)
+  SELF.AddColumn('testing',    'Testing',     0E67E22h)
+  SELF.AddColumn('closed',     'Closed',      027AE60h)
   SELF.SetAllColumnTextColors(COLOR:White)
-  SELF.SetColumnWipLimit('notstarted', 1)        ! Header turns red when exceeded
-  SELF.SetColumnBodyColor('complete', 0162C40h)  ! Custom body tint on Complete column
+  SELF.SetColumnWipLimit('new', 5)             ! Header turns red when exceeded
+  SELF.SetColumnBodyColor('closed', 0EAF7EAh)  ! Subtle green tint on Closed column
 
   ! ---- Board appearance ----
   SELF.SetDarkMode(1)
-  SELF.SetBoardTitle('Job Tracking Board', 06C3483h, 0FFFFFFh)
+  SELF.SetBoardTitle('Bug Tracker', 02C3E50h, 0FFFFFFh)
 
-  ! ---- Status / priority options (drives filter panel, context menu radio, status bar) ----
-  SELF.SetStatusTitle('Priority')
-  SELF.AddStatusOption('pri_high',   'High',   0E74C3Ch)
-  SELF.AddStatusOption('pri_medium', 'Medium', 0F39C12h)
-  SELF.AddStatusOption('pri_low',    'Low',    027AE60h)
-  SELF.AddStatusOption('pri_none',   'None',   -1)
+  ! ---- Severity options (drives filter panel, context menu radio, status bar) ----
+  SELF.SetStatusTitle('Severity')
+  SELF.AddStatusOption('sev_critical', 'Critical', 0C0392Bh)
+  SELF.AddStatusOption('sev_high',     'High',     0E74C3Ch)
+  SELF.AddStatusOption('sev_medium',   'Medium',   0F39C12h)
+  SELF.AddStatusOption('sev_low',      'Low',      027AE60h)
 
-  ! ---- Cards: c1-c4 via KanbanCardMeta (full metadata helper) ----
+  ! ---- Cards c1-c4 via KanbanCardMeta ----
   CLEAR(CardMeta)
   CardMeta.CardId       = 'c1'
-  CardMeta.ColumnId     = 'notstarted'
-  CardMeta.Title        = 'Fix Login Bug'
-  CardMeta.Body         = 'Repro on Chrome only. Test a longer body to see what happens to text'
+  CardMeta.ColumnId     = 'new'
+  CardMeta.Title        = 'BUG-001: Login timeout not reset on activity'
+  CardMeta.Body         = 'Session expires despite user interaction. Reproduced on Chrome, Edge and Firefox.'
   CardMeta.Overdue      = 1
-  CardMeta.Tag          = 'Artwork'
-  CardMeta.TagColor     = 3498DBh
+  CardMeta.Tag          = 'Auth'
+  CardMeta.TagColor     = 0E74C3Ch
   CardMeta.Assignee     = 'Sarah'
-  CardMeta.DueDate      = '04/04/26'
-  CardMeta.Progress     = 65
-  CardMeta.StatusOption = 'pri_low'
+  CardMeta.DueDate      = '01/04/26'
+  CardMeta.Progress     = 20
+  CardMeta.StatusOption = 'sev_critical'
   SELF.AddCard(CardMeta)
 
   CLEAR(CardMeta)
   CardMeta.CardId       = 'c2'
-  CardMeta.ColumnId     = 'studio'
-  CardMeta.Title        = 'Write Unit Tests'
-  CardMeta.StatusOption = 'pri_medium'
+  CardMeta.ColumnId     = 'triage'
+  CardMeta.Title        = 'BUG-002: PDF export crashes with large datasets'
+  CardMeta.Body         = 'Unhandled exception when record count exceeds 1,000. Stack trace attached.'
   CardMeta.Assignee     = 'Mark'
+  CardMeta.StatusOption = 'sev_high'
   CardMeta.Progress     = -1
   SELF.AddCard(CardMeta)
 
   CLEAR(CardMeta)
   CardMeta.CardId       = 'c3'
-  CardMeta.ColumnId     = 'print'
-  CardMeta.Title        = 'Refactor Data Layer'
-  CardMeta.Body         = 'Started 01/04/2026'
-  CardMeta.StatusOption = 'pri_high'
-  CardMeta.Progress     = -1
+  CardMeta.ColumnId     = 'inprogress'
+  CardMeta.Title        = 'BUG-003: Dashboard chart flickers on window resize'
+  CardMeta.Body         = 'Repaint issue in bar chart component. Affects all chart types.'
+  CardMeta.Assignee     = 'Sarah'
+  CardMeta.Progress     = 45
+  CardMeta.StatusOption = 'sev_medium'
   SELF.AddCard(CardMeta)
 
   CLEAR(CardMeta)
   CardMeta.CardId       = 'c4'
-  CardMeta.ColumnId     = 'notstarted'
-  CardMeta.Title        = 'Deploy to Staging'
-  CardMeta.Body         = 'Waiting on c3'
-  CardMeta.StatusOption = 'pri_none'
-  CardMeta.Progress     = -1
+  CardMeta.ColumnId     = 'inprogress'
+  CardMeta.Title        = 'FEAT-001: Bulk email export for filtered records'
+  CardMeta.Body         = 'Allow users to export the current filtered view as a CSV via email.'
+  CardMeta.Tag          = 'Feature'
+  CardMeta.TagColor     = 03498DBh
+  CardMeta.Assignee     = 'Mark'
+  CardMeta.Progress     = 30
+  CardMeta.StatusOption = 'sev_low'
   SELF.AddCard(CardMeta)
 
   ! c5: added via 4-param AddCard then individual setters (alternative to KanbanCardMeta)
-  SELF.AddCard('c5', 'finishing', 'Print Run 1500 Leaflets', 'A4 double-sided gloss')
-  SELF.SetCardTag('c5', 'Print', 08E44ADh)
+  SELF.AddCard('c5', 'review', 'BUG-004: Session cookie not cleared on logout', 'Cookie persists after logout allowing session hijack. Security review required.')
+  SELF.SetCardTag('c5', 'Security', 0C0392Bh)
   SELF.SetCardAssignee('c5', 'Sarah')
-  SELF.SetCardProgress('c5', 40)
+  SELF.SetCardProgress('c5', 70)
   SELF.SetCardStatusBar('c5', 'Blocked', 0E74C3Ch)  ! Direct status bar (bypasses radio group)
 
   CLEAR(CardMeta)
   CardMeta.CardId       = 'c6'
-  CardMeta.ColumnId     = 'invoiced'
-  CardMeta.Title        = 'Annual Report Design'
-  CardMeta.Body         = 'Full rebrand. Logo, typography and layout.'
-  CardMeta.Tag          = 'Design'
+  CardMeta.ColumnId     = 'testing'
+  CardMeta.Title        = 'BUG-005: Grid column widths reset after sort'
+  CardMeta.Body         = 'User column preferences lost on every sort. Full regression test needed.'
+  CardMeta.Tag          = 'UI'
   CardMeta.TagColor     = 09B59B6h
   CardMeta.Assignee     = 'Mark'
-  CardMeta.DueDate      = '30/06/26'
-  CardMeta.Progress     = 100
-  CardMeta.StatusOption = 'pri_none'
+  CardMeta.DueDate      = '15/06/26'
+  CardMeta.Progress     = 80
+  CardMeta.StatusOption = 'sev_low'
   SELF.AddCard(CardMeta)
 
   ! ---- Filters ----
-  SELF.BuildFilterFromStatus()                      ! Adds Priority group from status options
-  SELF.AddFilterGroup('assignee', 'Assignee')       ! Manual second filter group
+  SELF.BuildFilterFromStatus()                       ! Adds Severity group from status options
+  SELF.AddFilterGroup('assignee', 'Assignee')        ! Manual second filter group
   SELF.AddFilterItem('assignee', 'sarah', 'Sarah', 03498DBh)
   SELF.AddFilterItem('assignee', 'mark',  'Mark',  09B59B6h)
   SELF.SetCardFilterValue('c1', 'assignee', 'sarah')
   SELF.SetCardFilterValue('c2', 'assignee', 'mark')
+  SELF.SetCardFilterValue('c3', 'assignee', 'sarah')
+  SELF.SetCardFilterValue('c4', 'assignee', 'mark')
   SELF.SetCardFilterValue('c5', 'assignee', 'sarah')
   SELF.SetCardFilterValue('c6', 'assignee', 'mark')
   SELF.SetTextSearchEnabled(1)
 
   ! ---- Context menu ----
   SELF.ClearContextMenu()
-  SELF.AddContextMenuItem('', 'edit', 'Edit Card')
+  SELF.AddContextMenuItem('', 'edit', 'Edit Issue')
   SELF.AddContextMenuSep('')
   SELF.AddContextMenuSub('', 'move_col', 'Move to Column')   ! Sub-menu demo
-  SELF.AddContextMenuItem('move_col', 'moveto_notstarted', 'Not Started')
-  SELF.AddContextMenuItem('move_col', 'moveto_studio',     'Studio')
-  SELF.AddContextMenuItem('move_col', 'moveto_print',      'Print')
-  SELF.AddContextMenuItem('move_col', 'moveto_finishing',  'Finishing')
-  SELF.AddContextMenuItem('move_col', 'moveto_complete',   'Complete')
-  SELF.AddContextMenuItem('move_col', 'moveto_invoiced',   'Invoiced')
+  SELF.AddContextMenuItem('move_col', 'moveto_new',        'New')
+  SELF.AddContextMenuItem('move_col', 'moveto_triage',     'Triage')
+  SELF.AddContextMenuItem('move_col', 'moveto_inprogress', 'In Progress')
+  SELF.AddContextMenuItem('move_col', 'moveto_review',     'In Review')
+  SELF.AddContextMenuItem('move_col', 'moveto_testing',    'Testing')
+  SELF.AddContextMenuItem('move_col', 'moveto_closed',     'Closed')
   SELF.AddContextMenuItem('', 'move_top', 'Move to Top')
   SELF.AddContextMenuSep('')
-  SELF.BuildMenuFromStatus('')                       ! Adds Priority radio group
+  SELF.BuildMenuFromStatus('')                       ! Adds Severity radio group
   SELF.AddContextMenuSep('')
-  SELF.AddContextMenuItem('', 'delete', 'Delete Card')
+  SELF.AddContextMenuItem('', 'delete', 'Delete Issue')
 !----------------------------------------------------
 Kanban.OnContextMenuSelected  PROCEDURE(STRING pCardId, STRING pActionId)
   CODE
@@ -324,25 +331,25 @@ Kanban.OnContextMenuSelected  PROCEDURE(STRING pCardId, STRING pActionId)
 
   CASE pActionId
   OF 'edit'
-    ! Placeholder: open your edit dialog here
+    ! Placeholder: open your issue edit dialog here
   OF 'move_top'
     SELF.MoveCardToTop(pCardId)
-  OF 'moveto_notstarted'
-    SELF.MoveCard(pCardId, 'notstarted')
-  OF 'moveto_studio'
-    SELF.MoveCard(pCardId, 'studio')
-  OF 'moveto_print'
-    SELF.MoveCard(pCardId, 'print')
-  OF 'moveto_finishing'
-    SELF.MoveCard(pCardId, 'finishing')
-  OF 'moveto_complete'
-    SELF.MoveCard(pCardId, 'complete')
-  OF 'moveto_invoiced'
-    SELF.MoveCard(pCardId, 'invoiced')
-  OF 'pri_high'
-  OROF 'pri_medium'
-  OROF 'pri_low'
-  OROF 'pri_none'
+  OF 'moveto_new'
+    SELF.MoveCard(pCardId, 'new')
+  OF 'moveto_triage'
+    SELF.MoveCard(pCardId, 'triage')
+  OF 'moveto_inprogress'
+    SELF.MoveCard(pCardId, 'inprogress')
+  OF 'moveto_review'
+    SELF.MoveCard(pCardId, 'review')
+  OF 'moveto_testing'
+    SELF.MoveCard(pCardId, 'testing')
+  OF 'moveto_closed'
+    SELF.MoveCard(pCardId, 'closed')
+  OF 'sev_critical'
+  OROF 'sev_high'
+  OROF 'sev_medium'
+  OROF 'sev_low'
     SELF.SetCardStatus(pCardId, pActionId)
   OF 'delete'
     SELF.RemoveCard(pCardId)
@@ -377,7 +384,7 @@ KanbanProcess_Kanban  PROCEDURE
     OF 'CardDoubleClick'
       Kanban.OnDoubleClick(Kanban.Parm1)
       ?StatusLabel{PROP:Text} = 'Dbl-click: ' & Kanban.Parm1 & |
-        '  |  Priority: ' & Kanban.GetCardRadioValue(Kanban.Parm1, 'status')
+        '  |  Severity: ' & Kanban.GetCardRadioValue(Kanban.Parm1, 'status')
     OF 'CardClick'
       Kanban.OnSingleClick(Kanban.Parm1)
       ?StatusLabel{PROP:Text} = 'Clicked: ' & Kanban.Parm1 & |
