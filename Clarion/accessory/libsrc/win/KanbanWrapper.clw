@@ -280,6 +280,10 @@ KanbanWrapperClass.SetCardVisible           PROCEDURE(STRING pCardId, LONG pVisi
   CODE
   SELF.Ctrl{'SetCardVisible(' & SELF.Q_(pCardId) & ',' & pVisible & ')'}
 
+KanbanWrapperClass.ShowContextMenu          PROCEDURE(STRING pCardId)
+  CODE
+  SELF.Ctrl{'ShowContextMenu(' & SELF.Q_(pCardId) & ')'}
+
 ! ---------------------------------------------------------------------------
 ! Board appearance
 ! ---------------------------------------------------------------------------
@@ -427,6 +431,10 @@ KanbanWrapperClass.OnSingleClick            PROCEDURE(STRING pCardId)
 
 KanbanWrapperClass.OnDoubleClick            PROCEDURE(STRING pCardId)
   CODE
+
+KanbanWrapperClass.OnCardRightClick         PROCEDURE(STRING pCardId)
+  CODE
+  SELF.ShowContextMenu(pCardId)
 
 KanbanWrapperClass.OnOtherEvent             PROCEDURE(STRING pEventName)
   CODE

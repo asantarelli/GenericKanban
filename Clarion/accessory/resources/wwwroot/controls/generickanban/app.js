@@ -19,6 +19,10 @@
     _menuMap: {},
     _ctxCardId: null,
     _ctxEl: null,
+    // Deferred right-click state (CardRightClick event → C# → showContextMenu)
+    _pendingCtxCardId: null,
+    _pendingCtxX: 0,
+    _pendingCtxY: 0,
     _sortKeys: [],
     _tableSortInit: false,
     _searchText: "",
@@ -179,10 +183,12 @@
         }
       });
       el.addEventListener("contextmenu", (e) => {
-        if (!kanban._menuDef.length) return;
         e.preventDefault();
         e.stopPropagation();
-        kanban._showContextMenu(e.clientX, e.clientY, cardId);
+        kanban._pendingCtxCardId = cardId;
+        kanban._pendingCtxX = e.clientX;
+        kanban._pendingCtxY = e.clientY;
+        window.chrome.webview.postMessage(JSON.stringify({ type: "CardRightClick", cardId }));
       });
     },
     _rebuildCard(cardId) {
@@ -197,6 +203,14 @@
       this._menuDef = [];
       this._menuMap = {};
       this._hideContextMenu();
+    },
+    // Called from C# after the CardRightClick event has been handled.
+    // Stale-call guard: if a second right-click happened before C# responded,
+    // _pendingCtxCardId will no longer match and the call is ignored.
+    showContextMenu(cardId) {
+      if (cardId !== this._pendingCtxCardId) return;
+      this._pendingCtxCardId = null;
+      this._showContextMenu(this._pendingCtxX, this._pendingCtxY, cardId);
     },
     addContextMenuItem(parentId, itemId, label) {
       const node = { type: "item", id: itemId, label };

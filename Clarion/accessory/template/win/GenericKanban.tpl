@@ -238,6 +238,8 @@ KanbanProcess_%KanbanObjName  PROCEDURE
       %KanbanObjName.OnDoubleClick(%KanbanObjName.Parm1)
     OF 'CardClick'
       %KanbanObjName.OnSingleClick(%KanbanObjName.Parm1)
+    OF 'CardRightClick'
+      %KanbanObjName.OnCardRightClick(%KanbanObjName.Parm1)
     ELSE
       %KanbanObjName.OnOtherEvent(%KanbanObjName.EventName)
     END

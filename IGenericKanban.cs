@@ -263,5 +263,14 @@ namespace GenericKanban
         /// </summary>
         [DispId(45)]
         void SetCardVisible(string cardId, int visible);
+
+        /// <summary>
+        /// Triggers the context menu for the given card at the position of the last right-click.
+        /// Call this from your CardRightClick event handler (or let the base OnCardRightClick do it
+        /// automatically via PARENT.OnCardRightClick). Has no effect if <paramref name="cardId"/>
+        /// does not match the card that raised the pending right-click.
+        /// </summary>
+        [DispId(46)]
+        void ShowContextMenu(string cardId);
     }
 }

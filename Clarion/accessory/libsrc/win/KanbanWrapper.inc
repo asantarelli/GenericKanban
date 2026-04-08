@@ -98,6 +98,7 @@ MoveCard                  PROCEDURE(STRING pCardId, STRING pColumnId),VIRTUAL
 SetColumnWipLimit         PROCEDURE(STRING pColumnId, LONG pMaxCards),VIRTUAL
 GetColumnCardCount        PROCEDURE(STRING pColumnId), LONG,VIRTUAL
 SetCardVisible            PROCEDURE(STRING pCardId, LONG pVisible),VIRTUAL
+ShowContextMenu           PROCEDURE(STRING pCardId),VIRTUAL
 
 ! -- Board appearance --
 SetBoardBackgroundColor   PROCEDURE(LONG pColor),VIRTUAL
@@ -136,6 +137,7 @@ OnCardMoved               PROCEDURE(STRING pCardId, STRING pFromColumn, STRING p
 OnContextMenuSelected     PROCEDURE(STRING pCardId, STRING pActionId),VIRTUAL
 OnSingleClick             PROCEDURE(STRING pCardId),VIRTUAL
 OnDoubleClick             PROCEDURE(STRING pCardId),VIRTUAL
+OnCardRightClick          PROCEDURE(STRING pCardId),VIRTUAL
 OnOtherEvent              PROCEDURE(STRING pEventName),VIRTUAL
 
 ! -- Private helpers --

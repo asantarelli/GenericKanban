@@ -27,8 +27,10 @@ namespace GenericKanban
     [ComVisible(false)]
     public delegate void CardClickEventHandler(string cardId);
 
+    [ComVisible(false)]
+    public delegate void CardRightClickEventHandler(string cardId);
+
     [ComVisible(true)]
-    [Guid("124E0548-A46F-449D-A10E-E1741D4EB644")]
     [ProgId("GenericKanban.GenericKanbanControl")]
     [ClassInterface(ClassInterfaceType.None)]
     [ComSourceInterfaces(typeof(IGenericKanbanEvents))]
@@ -43,6 +45,7 @@ namespace GenericKanban
         public event ContextMenuSelectedEventHandler ContextMenuSelected;
         public event CardDoubleClickEventHandler CardDoubleClick;
         public event CardClickEventHandler CardClick;
+        public event CardRightClickEventHandler CardRightClick;
 
         // ----------------------------------------------------------------
         // WebView2 state
@@ -151,7 +154,7 @@ namespace GenericKanban
 
                 // Use %TEMP% for the user-data folder.
                 // %TEMP% is always local, always writable, and is per-user in Citrix
-                // multi-session environments â€” avoiding both network-share slowness
+                // multi-session environments  avoiding both network-share slowness
                 // and multi-user folder conflicts.
                 _userDataPath = Path.Combine(
                     Path.GetTempPath(),
@@ -204,7 +207,7 @@ namespace GenericKanban
                             _pending.Clear();
                         }
 
-                        // Board is ready and all queued setup scripts have been sent â€”
+                        // Board is ready and all queued setup scripts have been sent 
                         // hide the loading panel so the board appears cleanly.
                         if (_loadingPanel != null)
                             _loadingPanel.Visible = false;
@@ -240,6 +243,12 @@ namespace GenericKanban
                         var clickCardId = (string)msg["cardId"];
                         try { CardClick?.Invoke(clickCardId); }
                         catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban CardClick event sink error: {0}", ex); }
+                        break;
+
+                    case "CardRightClick":
+                        var rclickCardId = (string)msg["cardId"];
+                        try { CardRightClick?.Invoke(rclickCardId); }
+                        catch (Exception ex) { System.Diagnostics.Trace.TraceError("GenericKanban CardRightClick event sink error: {0}", ex); }
                         break;
                 }
             }
@@ -290,7 +299,7 @@ namespace GenericKanban
         private static string ColorToHex(int color) => color < 0 ? "" : $"#{color & 0xFFFFFF:X6}";
 
         // ----------------------------------------------------------------
-        // IGenericKanban â€” Columns
+        // IGenericKanban Columns
         // ----------------------------------------------------------------
 
         public void AddColumn(string columnId, string title)
@@ -376,13 +385,19 @@ namespace GenericKanban
             Exec($"kanban.setCardVisible({J(cardId)},{(visible != 0 ? "true" : "false")})");
         }
 
+        [DispId(46)]
+        public void ShowContextMenu(string cardId)
+        {
+            Exec($"kanban.showContextMenu({J(cardId)})");
+        }
+
         public void SetColumnBodyColor(string columnId, int color)
         {
             Exec($"kanban.setColumnBodyColor({J(columnId)},{J(ColorToHex(color))})");
         }
 
         // ----------------------------------------------------------------
-        // IGenericKanban â€” Cards
+        // IGenericKanban  Cards
         // ----------------------------------------------------------------
 
         public void AddCard(string cardId, string columnId, string title, string body)
@@ -434,7 +449,7 @@ namespace GenericKanban
         }
 
         // ----------------------------------------------------------------
-        // IGenericKanban â€” Card formatting
+        // IGenericKanban  Card formatting
         // ----------------------------------------------------------------
 
         public void SetCardBackgroundColor(string cardId, int color)
@@ -463,7 +478,7 @@ namespace GenericKanban
         }
 
         // ----------------------------------------------------------------
-        // IGenericKanban â€” Board
+        // IGenericKanban  Board
         // ----------------------------------------------------------------
 
         public void SetBoardBackgroundColor(int color)
@@ -477,7 +492,7 @@ namespace GenericKanban
         }
 
         // ----------------------------------------------------------------
-        // IGenericKanban â€” Optional card metadata
+        // IGenericKanban  Optional card metadata
         // ----------------------------------------------------------------
 
         public void SetCardTag(string cardId, string label, int color)
@@ -521,7 +536,7 @@ namespace GenericKanban
         }
 
         // ----------------------------------------------------------------
-        // IGenericKanban â€” Context Menu
+        // IGenericKanban  Context Menu
         // ----------------------------------------------------------------
 
         public void ClearContextMenu()

@@ -46,5 +46,14 @@ namespace GenericKanban
         /// <param name="cardId">ID of the card that was clicked.</param>
         [DispId(5)]
         void CardClick(string cardId);
+
+        /// <summary>
+        /// Fired when the user right-clicks a card, before the context menu is shown.
+        /// Call ShowContextMenu(cardId) from your event handler (or let the base OnCardRightClick do it)
+        /// to display the menu at the position of the right-click.
+        /// </summary>
+        /// <param name="cardId">ID of the card that was right-clicked.</param>
+        [DispId(6)]
+        void CardRightClick(string cardId);
     }
 }
