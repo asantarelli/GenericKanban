@@ -2,6 +2,13 @@
 
 All notable changes to GenericKanban will be documented here.
 
+## [1.2.0] - 2026-04-08
+
+### Added
+- **`OnCardRightClick(pCardId)`** event — fires on right-click *before* the context menu is shown; override to rebuild the menu per-card for dynamic, context-aware menus
+- **`ShowContextMenu(pCardId)`** method — triggers the context menu at the right-click position; called automatically by the base `OnCardRightClick`; call explicitly only if suppressing the PARENT call
+- **Stale-call guard** — a monotonic request token (seq) flows JS → C# → JS; a delayed C# response cannot show a ghost menu if the user right-clicked elsewhere or on the same card again before Clarion responded; document-level right-click also cancels any in-flight pending right-click
+
 ## [1.1.0] - 2026-04-08
 
 ### Added

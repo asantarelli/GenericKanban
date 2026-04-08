@@ -179,7 +179,7 @@
 <nav id="sidebar">
   <div class="nav-header">
     <div class="logo">📋 GenericKanban</div>
-    <div class="version">v1.1.0 · Clarion COM Control</div>
+    <div class="version">v1.2.0 · Clarion COM Control</div>
   </div>
 
   <div class="nav-section">Getting Started</div>
@@ -202,6 +202,7 @@
   <a href="#api-status" class="sub">Status System</a>
   <a href="#api-events" class="sub">Events</a>
   <a href="#api-new" class="sub">New in v1.1</a>
+  <a href="#api-new2" class="sub">New in v1.2</a>
 
   <div class="nav-section">Data Structures</div>
   <a href="#ds-cardmeta">KanbanCardMeta</a>
@@ -212,6 +213,7 @@
   <a href="#ex-cardmeta">Rich Cards</a>
   <a href="#ex-events">Handling Events</a>
   <a href="#ex-contextmenu">Context Menu</a>
+  <a href="#ex-contextmenu-deferred">Deferred Context Menu</a>
   <a href="#ex-status">Status System</a>
   <a href="#ex-filters">Filters</a>
   <a href="#ex-appearance">Appearance</a>
@@ -562,7 +564,12 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
   <!-- Context Menu -->
   <section id="api-context-menu">
     <h2>Context Menu</h2>
-    <p>Right-click on any card to show the context menu. Build it once in <strong>OnPageReady</strong>. The <code>pParentId</code> for top-level items is always <code>'root'</code>.</p>
+    <p>Right-click on any card to trigger the context menu flow. There are two usage patterns:</p>
+    <ul style="margin:.5rem 0 .75rem 1.25rem;line-height:1.8">
+      <li><strong>Static menu</strong> — build the menu once in <code>OnPageReady</code>; the same menu appears for every card.</li>
+      <li><strong>Deferred (per-card) menu</strong> — override <code>OnCardRightClick</code>, rebuild the menu inside the handler for the specific card, then call <code>PARENT.OnCardRightClick(pCardId)</code> to show it. This lets you add, remove, or disable items based on the card's current state or column.</li>
+    </ul>
+    <p>Pass <code>''</code> (empty string) as <code>pParentId</code> for top-level items.</p>
     <table class="api-table">
       <thead><tr><th style="width:54%">Method</th><th>Description</th></tr></thead>
       <tbody>
@@ -574,6 +581,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">AddContextMenuRadioItem(pGroupId, pItemId, pLabel)</td><td class="desc">Adds a radio item to a group.</td></tr>
         <tr><td class="sig">SetCardRadioValue(pCardId, pGroupId, pItemId)</td><td class="desc">Sets the currently selected radio item for a card/group pair.</td></tr>
         <tr><td class="sig">GetCardRadioValue(pCardId, pGroupId)</td><td class="desc">Returns the currently selected radio item ID for a card/group pair.</td></tr>
+        <tr><td class="sig">ShowContextMenu(pCardId)</td><td class="desc"><strong>New in v1.2.</strong> Shows the context menu at the position of the last right-click for <code>pCardId</code>. Normally called automatically via <code>PARENT.OnCardRightClick(pCardId)</code> — call it explicitly only if you suppress the PARENT call.</td></tr>
       </tbody>
     </table>
   </section>
@@ -634,6 +642,10 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
     <div class="method-block">
       <div class="msig">OnContextMenuSelected(STRING pCardId, STRING pActionId)</div>
       <div class="mdesc">Fires when the user clicks a context menu item. <code>pCardId</code> is the card that was right-clicked. <code>pActionId</code> is the <code>pItemId</code> passed to <code>AddContextMenuItem</code>, or the radio item ID for radio groups.</div>
+    </div>
+    <div class="method-block">
+      <div class="msig">OnCardRightClick(STRING pCardId)</div>
+      <div class="mdesc"><strong>New in v1.2.</strong> Fires when the user right-clicks a card, <em>before</em> the context menu is shown. Override this to rebuild the menu per-card (dynamic menus). The base implementation calls <code>ShowContextMenu(pCardId)</code>, which displays the menu at the right-click position. <strong>Always call <code>PARENT.OnCardRightClick(pCardId)</code></strong> at the end of your override so the menu is shown — the template generates this call automatically for derived methods.</div>
     </div>
     <div class="method-block">
       <div class="msig">OnOtherEvent(STRING pEventName)</div>
@@ -811,6 +823,61 @@ MyKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
   END</code></pre>
   </section>
 
+  <section id="ex-contextmenu-deferred">
+    <h2>Example — Deferred (Per-Card) Context Menu</h2>
+    <p>Override <code>OnCardRightClick</code> to rebuild the menu for each card individually before it is shown. This lets you tailor menu items based on the card's current column, status, or any other property.</p>
+    <pre><code class="language-clarion">! ── YourApp.inc ────────────────────────────────────────────────
+ProjectKanban CLASS(KanbanWrapperClass)
+OnCardRightClick        PROCEDURE(STRING pCardId), OVERRIDE
+OnContextMenuSelected   PROCEDURE(STRING pCardId, STRING pActionId), OVERRIDE
+                      END
+
+! ── YourApp.clw ────────────────────────────────────────────────
+ProjectKanban.OnCardRightClick PROCEDURE(STRING pCardId)
+  CODE
+  ! Rebuild the menu fresh for this card
+  SELF.ClearContextMenu()
+  SELF.AddContextMenuItem('', 'edit',   'Edit Card...')
+  SELF.AddContextMenuSep('')
+
+  ! Show 'Mark as Done' only when not already in the Done column
+  IF CLIP(SELF.GetCardColumn(pCardId)) <> 'done'
+    SELF.AddContextMenuItem('', 'done', 'Mark as Done')
+  END
+
+  ! Show 'Reopen' only when the card IS in Done
+  IF CLIP(SELF.GetCardColumn(pCardId)) = 'done'
+    SELF.AddContextMenuItem('', 'reopen', 'Reopen')
+  END
+
+  SELF.AddContextMenuSep('')
+  SELF.AddContextMenuItem('', 'delete', 'Delete Card')
+
+  ! PARENT call shows the menu at the right-click position
+  PARENT.OnCardRightClick(pCardId)
+
+ProjectKanban.OnContextMenuSelected PROCEDURE(STRING pCardId, STRING pActionId)
+  CODE
+  CASE CLIP(pActionId)
+  OF 'edit'
+    EditCardDialog(CLIP(pCardId))
+  OF 'done'
+    SELF.MoveCard(pCardId, 'done')
+    SELF.SetCardProgress(pCardId, 100)
+  OF 'reopen'
+    SELF.MoveCard(pCardId, 'todo')
+    SELF.SetCardProgress(pCardId, 0)
+  OF 'delete'
+    IF MESSAGE('Delete this card?', 'Confirm', ICON:Question, BUTTON:Yes+BUTTON:No) = BUTTON:Yes
+      SELF.RemoveCard(pCardId)
+    END
+  END</code></pre>
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p><strong>PARENT call is required.</strong> The base <code>OnCardRightClick</code> implementation calls <code>ShowContextMenu(pCardId)</code> to display the menu. If you override the method without calling <code>PARENT.OnCardRightClick(pCardId)</code>, the menu will never appear. The Clarion template generates the PARENT call automatically for derived methods.</p>
+    </div>
+  </section>
+
   <section id="ex-status">
     <h2>Example — Status System</h2>
     <p>The status system ties a colour, a context menu radio button, and a filter option together for each status value. Set it up once in <strong>OnPageReady</strong>.</p>
@@ -936,6 +1003,19 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
         <tr><td class="sig">SetCardVisible(pCardId, pVisible)</td><td class="desc">Shows or hides a card without removing it. Independent of the filter panel.</td></tr>
         <tr><td class="sig">OnSingleClick(STRING pCardId)</td><td class="desc">Event — fires on a confirmed single click (after 300 ms with no second click).</td></tr>
         <tr><td class="sig">OnDoubleClick(STRING pCardId)</td><td class="desc">Event — fires on a double-click (two clicks within 300 ms). Mutually exclusive with <code>OnSingleClick</code>.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- New in v1.2 -->
+  <section id="api-new2">
+    <h2>New in v1.2</h2>
+    <p>The following methods and events were added in v1.2. All are fully backward-compatible — existing code requires no changes.</p>
+    <table class="api-table">
+      <thead><tr><th style="width:54%">Method / Event</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="sig">OnCardRightClick(STRING pCardId)</td><td class="desc">Event — fires on a right-click before the menu is shown. Override to rebuild the menu per-card. Always call <code>PARENT.OnCardRightClick(pCardId)</code> to show the menu.</td></tr>
+        <tr><td class="sig">ShowContextMenu(pCardId)</td><td class="desc">Shows the context menu at the right-click position for the given card. Called automatically by the base <code>OnCardRightClick</code>.</td></tr>
       </tbody>
     </table>
   </section>
