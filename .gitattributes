@@ -28,9 +28,9 @@
 *.tpl  linguist-language=Clarion
 *.tpw  linguist-language=Clarion
 
-# TypeScript is the real frontend source; generated app.js should not count
-wwwroot/**/*.js          linguist-generated=true
-HandCodeExample/**/*.js  linguist-generated=true
+# wwwroot is built/distributed output — exclude entirely from language stats
+wwwroot/**                   linguist-generated=true
+HandCodeExample/wwwroot/**   linguist-generated=true
 
 # Vendor / third-party JS
 **/sortable.min.js  linguist-vendored=true
