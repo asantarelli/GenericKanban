@@ -30,7 +30,6 @@ Copy the contents of the `Clarion/accessory/` folder to your Clarion accessory f
 - `bin/GenericKanban.dll` → `accessory\bin\`
 - `resources/GenericKanban.manifest` → `accessory\resources\`
 - `resources/wwwroot/` → `accessory\resources\wwwroot\`
-- Metadata files (`.details`, `.methods`, `.events`, `.header`) → `accessory\resources\`
 
 ## API Reference
 
@@ -129,7 +128,7 @@ Copy the contents of the `Clarion/accessory/` folder to your Clarion accessory f
 
 ## Clarion Wrapper Class
 
-A `KanbanWrapperClass` is provided in `Clarion/accessory/libsrc/win/` (`KanbanWrapper.inc` / `KanbanWrapper.clw`) that wraps raw COM calls for cleaner Clarion code. The Clarion template generates and links this automatically.
+A `KanbanWrapperClass` is provided in `Clarion/accessory/libsrc/win/` (`KanbanWrapper.inc` / `KanbanWrapper.clw`) that wraps raw COM calls for cleaner Clarion code.
 
 ## Building from Source
 
