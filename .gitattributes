@@ -1,0 +1,39 @@
+# ── Line endings ──────────────────────────────────────────────────────────────
+
+# Default: normalise to LF in the repo, checkout as LF on all platforms
+* text=auto eol=lf
+
+# Clarion sources must stay CRLF (Clarion IDE requires Windows line endings)
+*.clw  text eol=crlf
+*.inc  text eol=crlf
+*.tpl  text eol=crlf
+*.tpw  text eol=crlf
+
+# Windows manifests and project files — CRLF
+*.manifest  text eol=crlf
+*.csproj    text eol=crlf
+*.slnx      text eol=crlf
+*.sln       text eol=crlf
+
+# ── Binary files (no line-ending conversion) ──────────────────────────────────
+*.dll   binary
+*.exe   binary
+*.min.js binary
+
+# ── GitHub Linguist overrides ─────────────────────────────────────────────────
+
+# Clarion — not known to Linguist; mark as plain text so it doesn't skew stats
+*.clw  linguist-language=Clarion
+*.inc  linguist-language=Clarion
+*.tpl  linguist-language=Clarion
+*.tpw  linguist-language=Clarion
+
+# TypeScript is the real frontend source; generated app.js should not count
+wwwroot/**/*.js          linguist-generated=true
+HandCodeExample/**/*.js  linguist-generated=true
+
+# Vendor / third-party JS
+**/sortable.min.js  linguist-vendored=true
+
+# Docs folder counts as documentation, not code
+Clarion/accessory/docs/**  linguist-documentation=true
