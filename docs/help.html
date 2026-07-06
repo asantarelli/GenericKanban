@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GenericKanban — Reference Guide</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --text: #172b4d;
+    --muted: #5e6c84;
+    --border: #dfe1e6;
+    --accent: #0052cc;
+    --accent-soft: #eef4ff;
+    --code-bg: #f4f5f7;
+    --new-badge: #e67e22;
+    --sidebar-w: 250px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre {
+    font-family: Consolas, 'Courier New', monospace;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.92em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; }
+
+  /* Layout */
+  .layout { display: flex; min-height: 100vh; }
+
+  nav#toc {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 20px 0 40px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  nav#toc .toc-title {
+    font-size: 15px;
+    font-weight: 700;
+    padding: 0 20px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  nav#toc .toc-sub {
+    display: block;
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  nav#toc .toc-lang {
+    display: block;
+    font-size: 11.5px;
+    margin-top: 6px;
+  }
+  nav#toc ul { list-style: none; margin: 0; padding: 0; }
+  nav#toc li { margin: 0; }
+  nav#toc a.toc-link {
+    display: block;
+    padding: 6px 20px;
+    font-size: 13px;
+    color: var(--text);
+    border-left: 3px solid transparent;
+  }
+  nav#toc a.toc-link:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    text-decoration: none;
+  }
+  nav#toc .toc-section-title {
+    padding: 14px 20px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+
+  main {
+    flex: 1;
+    max-width: 900px;
+    padding: 32px 48px 80px;
+  }
+
+  header.hero {
+    margin-bottom: 32px;
+  }
+  header.hero h1 {
+    font-size: 30px;
+    margin: 0 0 6px;
+  }
+  header.hero p.lead {
+    color: var(--muted);
+    font-size: 15px;
+    margin: 0;
+  }
+
+  section { margin-bottom: 46px; scroll-margin-top: 16px; }
+  section h2 {
+    font-size: 22px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+  section h3 {
+    font-size: 16px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  section h3.no-badge-margin { margin-top: 28px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 22px;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: #f4f5f7;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--muted);
+  }
+  td code { white-space: nowrap; }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #fff;
+    background: var(--new-badge);
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .callout {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 14px 0;
+    font-size: 13.5px;
+  }
+  .callout.warn {
+    background: #fff6e6;
+    border-left-color: #e67e22;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 760px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    nav#toc { display: none; }
+  }
+
+  footer {
+    color: var(--muted);
+    font-size: 12.5px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 40px;
+  }
+
+  .kbd {
+    font-family: Consolas, monospace;
+    font-size: 12px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav id="toc">
+    <div class="toc-title">GenericKanban
+      <span class="toc-sub">Reference Guide</span>
+      <a class="toc-lang" href="ayuda.html">🌐 Versión en español</a>
+    </div>
+    <ul>
+      <li><a class="toc-link" href="#intro">Introduction</a></li>
+      <li><a class="toc-link" href="#install">Requirements &amp; installation</a></li>
+      <li><a class="toc-link" href="#concepts">Basic concepts</a></li>
+    </ul>
+    <div class="toc-section-title">Method Reference</div>
+    <ul>
+      <li><a class="toc-link" href="#columns">Columns</a></li>
+      <li><a class="toc-link" href="#cards">Cards</a></li>
+      <li><a class="toc-link" href="#appearance">Board appearance</a></li>
+      <li><a class="toc-link" href="#language">Language (ES/EN)</a></li>
+      <li><a class="toc-link" href="#persistence">Save / restore state</a></li>
+      <li><a class="toc-link" href="#menu">Context menu</a></li>
+      <li><a class="toc-link" href="#filters">Filters</a></li>
+      <li><a class="toc-link" href="#status">Status system</a></li>
+    </ul>
+    <div class="toc-section-title">Events</div>
+    <ul>
+      <li><a class="toc-link" href="#events">Event reference</a></li>
+    </ul>
+    <div class="toc-section-title">Usage</div>
+    <ul>
+      <li><a class="toc-link" href="#example">Full example</a></li>
+      <li><a class="toc-link" href="#whatsnew">What's new in this version</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <header class="hero" id="intro">
+      <h1>GenericKanban</h1>
+      <p class="lead">A generic, database-agnostic Kanban board OLE control for Clarion applications. Built with WebView2 and SortableJS.</p>
+    </header>
+
+    <section id="install">
+      <h2>Requirements &amp; installation</h2>
+      <ul>
+        <li>.NET Framework 4.8</li>
+        <li>Clarion 11.0 or later</li>
+        <li>WebView2 Runtime installed on the target machine</li>
+      </ul>
+      <p>Copy the contents of <code>Clarion/accessory/</code> into your Clarion accessory folder:</p>
+      <pre><code>bin/GenericKanban.dll        → accessory\bin\
+resources/GenericKanban.manifest → accessory\resources\
+resources/wwwroot/           → accessory\resources\wwwroot\</code></pre>
+      <div class="callout">
+        Include <code>KanbanWrapper.inc</code> / <code>KanbanWrapper.clw</code> (in <code>Clarion/accessory/libsrc/win/</code>)
+        in your Clarion project. The <code>KanbanWrapperClass</code> wraps the raw COM calls
+        for cleaner code — this is the recommended way to use the control.
+      </div>
+    </section>
+
+    <section id="concepts">
+      <h2>Basic concepts</h2>
+      <p>
+        The control is dropped onto a window like any standard <code>OLE</code> control. The typical flow is:
+      </p>
+      <ol>
+        <li>Create the OLE control and call <code>Kanban.Init(?KanbanOLE)</code> + <code>Kanban.RegisterEvents(?KanbanOLE, Kanban_Event)</code> in <code>EVENT:OpenWindow</code>.</li>
+        <li>Wait for the <code>PageReady</code> event before assuming the board is ready — although in practice methods called earlier also work: they are queued internally and executed as soon as the page finishes loading.</li>
+        <li>Build columns, cards, filters, context menu and status options inside <code>OnPageReady</code>.</li>
+        <li>Process incoming events (<code>CardMoved</code>, <code>CardClick</code>, etc.) with a <code>Kanban.GetEvent()</code> loop, triggered by the posted event (<code>Kanban_Event</code>).</li>
+        <li>Call <code>Kanban.Kill()</code> when the window closes.</li>
+      </ol>
+      <p>See the <a href="#example">Full example</a> section for the complete pattern.</p>
+    </section>
+
+    <!-- ══════════════════ COLUMNS ══════════════════ -->
+    <section id="columns">
+      <h2>Columns</h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>AddColumn(columnId, title, color=0)</code></td><td>Adds a column; <code>color</code> sets the header background</td></tr>
+          <tr><td><code>RemoveColumn(columnId)</code></td><td>Removes a column and all its cards</td></tr>
+          <tr><td><code>ClearColumns()</code></td><td>Removes all columns and cards</td></tr>
+          <tr><td><code>SetColumnHeaderColor(columnId, color)</code></td><td>Column header background colour</td></tr>
+          <tr><td><code>SetColumnHeaderTextColor(columnId, color)</code></td><td>Column header text colour</td></tr>
+          <tr><td><code>SetAllColumnTextColors(color)</code></td><td>Sets header text colour for every column at once</td></tr>
+          <tr><td><code>SetColumnBodyColor(columnId, color)</code></td><td>Column body background colour</td></tr>
+          <tr><td><code>SetColumnWidth(width)</code></td><td>Pixel width for all columns (default 260)</td></tr>
+          <tr><td><code>SetColumnWipLimit(columnId, maxCards)</code></td><td>WIP (work in progress) limit; 0 = no limit</td></tr>
+          <tr><td><code>GetColumnCardCount(columnId)</code></td><td>Returns the current card count for a column</td></tr>
+          <tr><td><code>SetColumnVisible(columnId, visible)</code> <span class="badge">New</span></td><td>Hides (0) or shows (1) a column without removing it or losing its cards</td></tr>
+          <tr><td><code>SetColumnSortMode(columnId, mode)</code> <span class="badge">New</span></td><td>Auto-sorts the column by <code>"priority"</code> or <code>"date"</code> (or <code>"none"</code>) — see details below</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="no-badge-margin">Automatic sort by priority or date <span class="badge">New</span></h3>
+      <p>
+        <code>SetColumnSortMode</code> sets the <strong>initial/default order</strong> of the cards inside a column.
+        It is re-applied automatically when:
+      </p>
+      <ul>
+        <li>A new card is added to the column (<code>AddCard</code>).</li>
+        <li>A card's priority changes (<code>SetCardPriority</code>).</li>
+        <li>A card's due date changes (<code>SetCardDueDate</code>).</li>
+        <li><code>SetColumnSortMode</code> is called explicitly.</li>
+      </ul>
+      <div class="callout">
+        After each auto-sort pass, the user can still freely drag cards within the column —
+        manual dragging is <strong>never blocked</strong>. The next event from the list above
+        re-applies the automatic order.
+      </div>
+      <pre><code>Kanban.SetCardPriority('c1', 1)      ! lower number = higher priority
+Kanban.SetCardPriority('c2', 3)
+Kanban.SetColumnSortMode('new', 'priority')   ! c1 ends up above c2
+
+Kanban.SetColumnSortMode('testing', 'date')   ! sorts by SetCardDueDate
+Kanban.SetColumnSortMode('closed', 'none')    ! back to free order (no auto-sort)</code></pre>
+    </section>
+
+    <!-- ══════════════════ CARDS ══════════════════ -->
+    <section id="cards">
+      <h2>Cards</h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>AddCard(cardId, columnId, title, body)</code></td><td>Adds a card</td></tr>
+          <tr><td><code>AddCard(KanbanCardMeta)</code></td><td>Adds a fully decorated card in one call</td></tr>
+          <tr><td><code>RemoveCard(cardId)</code></td><td>Removes a card</td></tr>
+          <tr><td><code>ClearColumnCards(columnId)</code></td><td>Removes all cards from a column</td></tr>
+          <tr><td><code>GetCardColumn(cardId)</code></td><td>Returns the column ID containing the card</td></tr>
+          <tr><td><code>MoveCardToTop(cardId)</code></td><td>Moves a card to the top of its column</td></tr>
+          <tr><td><code>MoveCard(cardId, columnId)</code></td><td>Moves a card to a different column (fires <code>CardMoved</code>)</td></tr>
+          <tr><td><code>SetCardVisible(cardId, visible)</code></td><td>Shows (1) or hides (0) a card without removing it</td></tr>
+          <tr><td><code>SetCardTitle(cardId, title)</code></td><td>Updates the card title</td></tr>
+          <tr><td><code>SetCardBody(cardId, body)</code></td><td>Updates the card body text</td></tr>
+          <tr><td><code>SetCardBackgroundColor(cardId, color)</code></td><td>Card background colour</td></tr>
+          <tr><td><code>SetCardTextColor(cardId, color)</code></td><td>Card text colour</td></tr>
+          <tr><td><code>SetCardBorderColor(cardId, color)</code></td><td>Card border colour</td></tr>
+          <tr><td><code>SetCardTag(cardId, label, color)</code></td><td>Coloured tag/badge on the card</td></tr>
+          <tr><td><code>SetCardAssignee(cardId, assignee)</code></td><td>Assignee name</td></tr>
+          <tr><td><code>SetCardDueDate(cardId, dueDate)</code></td><td>Due date (text)</td></tr>
+          <tr><td><code>SetCardProgress(cardId, percent)</code></td><td>Progress bar (0–100, -1 to hide it)</td></tr>
+          <tr><td><code>SetCardOverdue(cardId, overdue)</code></td><td>Marks (1) or clears (0) the overdue badge</td></tr>
+          <tr><td><code>SetCardStatusBar(cardId, label, color)</code></td><td>Coloured status bar on the left edge</td></tr>
+          <tr><td><code>SetCardStatus(cardId, optionId)</code></td><td>Sets status (bar + filter + radio) in one call</td></tr>
+          <tr><td><code>SetCardPriority(cardId, priority)</code> <span class="badge">New</span></td><td>Numeric priority (lower = higher priority); -1 clears it</td></tr>
+          <tr><td><code>SetCardRadioValue(cardId, groupId, itemId)</code></td><td>Selects a radio-group item for the card</td></tr>
+          <tr><td><code>GetCardRadioValue(cardId, groupId)</code></td><td>Returns the selected radio-group item</td></tr>
+          <tr><td><code>SetCardFilterValue(cardId, groupId, itemId)</code></td><td>Associates the card with a filter value</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════ APPEARANCE ══════════════════ -->
+    <section id="appearance">
+      <h2>Board appearance</h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>SetBoardTitle(title, colorBg, colorText)</code></td><td>Sets the board's title bar</td></tr>
+          <tr><td><code>SetBoardBackgroundColor(color)</code></td><td>Board canvas background colour</td></tr>
+          <tr><td><code>SetDarkMode(enabled)</code></td><td>Enables (1) or disables (0) dark mode</td></tr>
+          <tr><td><code>SetReadOnly(readOnly)</code></td><td>Disables drag-and-drop when set to 1</td></tr>
+          <tr><td><code>SetFontSize(px)</code> <span class="badge">New</span></td><td>Global base font size in pixels (default 14); the rest of the text scales proportionally</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="no-badge-margin">Automatic text contrast <span class="badge">New</span></h3>
+      <p>
+        When a background colour is set (<code>SetCardBackgroundColor</code>, <code>SetColumnHeaderColor</code>)
+        <strong>without</strong> an explicit text colour having been set, the control automatically picks
+        black or white text based on the background's luminance, to guarantee readable contrast in both
+        light and dark mode. If <code>SetCardTextColor</code> / <code>SetColumnHeaderTextColor</code> is
+        later called explicitly, that manual colour always takes priority over the automatic one.
+      </p>
+      <pre><code>Kanban.SetCardBackgroundColor('c1', 0FDEDECh)  ! light pink background
+                                                ! → automatic black text
+Kanban.SetCardBackgroundColor('c2', 02C3E50h)  ! dark navy background
+                                                ! → automatic white text
+Kanban.SetCardTextColor('c1', 0800000h)        ! manual override: always wins</code></pre>
+    </section>
+
+    <!-- ══════════════════ LANGUAGE ══════════════════ -->
+    <section id="language">
+      <h2>Language (ES / EN) <span class="badge">New</span></h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>SetLanguage(lang)</code></td><td>Control chrome language: <code>"en"</code> or <code>"es"</code> (default <code>"en"</code>)</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Translates the control's own chrome text: table-view headers, filter panel
+        (heading, "Clear all", search box), the <em>OVERDUE</em> badge, the due-date prefix,
+        and the Board/Table view switcher.
+      </p>
+      <div class="callout warn">
+        <strong>Does not translate card content.</strong> Titles, body, tags, assignee, etc.
+        are free text entered by the Clarion application — if you need to show them in both
+        languages, the application must pass already-translated text to the corresponding setters.
+      </div>
+      <pre><code>Kanban.SetLanguage('es')   ! control chrome in Spanish
+Kanban.SetLanguage('en')   ! back to English (also the default value)</code></pre>
+    </section>
+
+    <!-- ══════════════════ PERSISTENCE ══════════════════ -->
+    <section id="persistence">
+      <h2>Save / restore state <span class="badge">New</span></h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>GetBoardState()</code></td><td>Returns a JSON string with all board-level settings</td></tr>
+          <tr><td><code>SetBoardState(json)</code></td><td>Restores settings from a JSON string produced by <code>GetBoardState()</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        Covers: dark mode, read-only, column width, font size, language, board title
+        (text and colours), per-column visibility and per-column auto-sort mode.
+        <strong>Does not include columns or cards</strong> — those are managed by the
+        Clarion application, which normally re-creates them when the window opens.
+      </p>
+      <pre><code>! JSON schema returned by GetBoardState()
+{
+  "version": 1,
+  "darkMode": true,
+  "readOnly": false,
+  "columnWidth": 260,
+  "fontSize": 14,
+  "language": "en",
+  "boardTitle": "My Board",
+  "boardTitleColorBg": -1,
+  "boardTitleColorText": -1,
+  "columnVisibility": { "new": true, "closed": false },
+  "columnSortModes": { "new": "priority" }
+}</code></pre>
+      <p>Typical use: save the JSON to a user-preferences table or file, and restore it when the window reopens.</p>
+      <pre><code>! When closing / saving user preferences
+UserPrefs.KanbanState = Kanban.GetBoardState()
+
+! When reopening the window, BEFORE or AFTER PageReady (both work:
+! calls are queued internally until the page is ready)
+Kanban.SetBoardState(UserPrefs.KanbanState)</code></pre>
+      <div class="callout warn">
+        The JSON can be long if there are many columns. The Clarion wrapper reserves
+        <span class="kbd">STRING(8000)</span> for the <code>GetBoardState()</code> return value —
+        on boards with an unusually large number of columns, verify the string is not truncated.
+      </div>
+    </section>
+
+    <!-- ══════════════════ CONTEXT MENU ══════════════════ -->
+    <section id="menu">
+      <h2>Context menu</h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>ClearContextMenu()</code></td><td>Clears all context menu items</td></tr>
+          <tr><td><code>AddContextMenuItem(parentId, itemId, label)</code></td><td>Adds a clickable menu item</td></tr>
+          <tr><td><code>AddContextMenuSub(parentId, subId, label)</code></td><td>Adds a sub-menu</td></tr>
+          <tr><td><code>AddContextMenuSep(parentId)</code></td><td>Adds a separator</td></tr>
+          <tr><td><code>AddContextMenuRadioGroup(parentId, groupId, label)</code></td><td>Adds a radio group</td></tr>
+          <tr><td><code>AddContextMenuRadioItem(groupId, itemId, label)</code></td><td>Adds a radio item to a group</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Passing <code>parentId=''</code> adds the item at the root level of the menu; passing a
+        submenu/group ID nests it inside. The <code>CardRightClick</code> event fires <em>before</em>
+        the menu is shown, letting you enable/disable items dynamically per card before calling
+        <code>ShowContextMenu(cardId)</code>.
+      </p>
+    </section>
+
+    <!-- ══════════════════ FILTERS ══════════════════ -->
+    <section id="filters">
+      <h2>Filters</h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>ClearFilters()</code></td><td>Clears all filter groups and items</td></tr>
+          <tr><td><code>AddFilterGroup(groupId, title)</code></td><td>Adds a filter group section</td></tr>
+          <tr><td><code>AddFilterItem(groupId, itemId, label, color)</code></td><td>Adds a filter option with a colour swatch</td></tr>
+          <tr><td><code>SetTextSearchEnabled(enabled)</code></td><td>Shows (1) or hides (0) the text search box</td></tr>
+          <tr><td><code>SetAssigneeFilter(assignee)</code> <span class="badge">New</span></td><td>Shows only cards whose assignee (<code>SetCardAssignee</code>) matches exactly; an empty string shows every assignee again</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="no-badge-margin">Filter by user/assignee <span class="badge">New</span></h3>
+      <p>
+        <code>SetAssigneeFilter</code> is a one-call shortcut for the common "My Tasks" use case —
+        it does not require pre-registering every assignee as a filter item (unlike the generic
+        filter panel above). It composes with AND alongside the filter panel and text search: a
+        card is only shown if it passes every active condition at once.
+      </p>
+      <div class="callout">
+        While the filter is in "single assignee" mode, the assignee's name is <strong>hidden</strong>
+        on the card (redundant, since every visible card already belongs to them). Switching back to
+        "all assignees" (empty string) automatically brings the name back on every card that has one.
+      </div>
+      <pre><code>! "My Tasks" mode — only Sarah's cards, without repeating her name on every card
+Kanban.SetAssigneeFilter('Sarah')
+
+! Back to "all assignees" — the assignee name reappears on every card
+Kanban.SetAssigneeFilter('')</code></pre>
+    </section>
+
+    <!-- ══════════════════ STATUS SYSTEM ══════════════════ -->
+    <section id="status">
+      <h2>Status system</h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>SetStatusTitle(title)</code></td><td>Display name for the status group</td></tr>
+          <tr><td><code>AddStatusOption(optionId, label, color)</code></td><td>Registers a possible status value</td></tr>
+          <tr><td><code>BuildFilterFromStatus()</code></td><td>Creates a filter group from the registered status options</td></tr>
+          <tr><td><code>BuildMenuFromStatus(parentId)</code></td><td>Creates a context menu radio group from the registered status options</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        The status system is a shortcut: it ties together in a single concept (<code>SetCardStatus</code>)
+        the card's colour bar, the context menu radio group, and the filter — avoiding manually keeping
+        those three mechanisms in sync when they represent the same value (e.g. a ticket's severity or priority).
+      </div>
+    </section>
+
+    <!-- ══════════════════ EVENTS ══════════════════ -->
+    <section id="events">
+      <h2>Event reference</h2>
+      <table>
+        <thead><tr><th>Event</th><th>Parameters</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>CardMoved</code></td><td><code>cardId</code>, <code>fromColumnId</code>, <code>toColumnId</code></td><td>A card changed columns (drag or <code>MoveCard</code>)</td></tr>
+          <tr><td><code>PageReady</code></td><td>—</td><td>The board finished initialising and is ready to receive calls</td></tr>
+          <tr><td><code>ContextMenuSelected</code></td><td><code>cardId</code>, <code>itemId</code></td><td>A context menu item was selected</td></tr>
+          <tr><td><code>CardClick</code></td><td><code>cardId</code></td><td>Confirmed single click (300&nbsp;ms debounce, mutually exclusive with double-click)</td></tr>
+          <tr><td><code>CardDoubleClick</code></td><td><code>cardId</code></td><td>Double click (cancels the pending single-click)</td></tr>
+          <tr><td><code>CardRightClick</code></td><td><code>cardId</code></td><td>Right click, before the context menu is shown — lets you adjust the menu dynamically per card before calling <code>ShowContextMenu(cardId)</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        In Clarion, events are consumed with a loop over <code>Kanban.GetEvent()</code>, triggered by the
+        posted OLE event (see the <a href="#example">full example</a>). <code>Kanban.EventName</code>,
+        <code>Kanban.Parm1/2/3</code> carry the event name and its parameters.
+      </p>
+    </section>
+
+    <!-- ══════════════════ EXAMPLE ══════════════════ -->
+    <section id="example">
+      <h2>Full example</h2>
+      <p>Minimal usage pattern (see <code>HandCodeExample/HandCodeExample.clw</code> for the full repository example):</p>
+      <pre><code>Window      WINDOW('Demo'),AT(,,741,397),GRAY,IMM,SYSTEM
+              OLE,AT(2,2,615,374),USE(?KanbanOLE)
+              END
+            END
+Kanban_Event    EQUATE(Event:User+2000+?KanbanOLE)
+
+Kanban      Class(KanbanWrapperClass)
+Init                  PROCEDURE(LONG pCtrl),VIRTUAL
+OnPageReady           PROCEDURE(),VIRTUAL
+OnCardMoved           PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColumn),VIRTUAL
+            End
+
+  CODE
+  OPEN(Window)
+  ACCEPT
+    CASE EVENT()
+    OF EVENT:OpenWindow
+      ?KanbanOLE{PROP:Create} = 'GenericKanban.GenericKanbanControl'
+      Kanban.Init(?KanbanOLE)
+      Kanban.RegisterEvents(?KanbanOLE, Kanban_Event)
+    OF EVENT:CloseWindow
+      Kanban.Kill()
+      BREAK
+    OF Kanban_Event
+      LOOP WHILE Kanban.GetEvent()
+        CASE Kanban.EventName
+        OF 'PageReady';      Kanban.OnPageReady()
+        OF 'CardMoved';      Kanban.OnCardMoved(Kanban.Parm1, Kanban.Parm2, Kanban.Parm3)
+        END
+      END
+    END
+  END
+  CLOSE(Window)
+
+Kanban.Init         PROCEDURE(LONG pCtrl)
+  CODE
+  PARENT.Init(pCtrl)
+
+Kanban.OnPageReady  PROCEDURE()
+  CODE
+  PARENT.OnPageReady()
+  SELF.AddColumn('new', 'New', COLOR:Blue)
+  SELF.AddColumn('done', 'Done', COLOR:Green)
+  SELF.AddCard('c1', 'new', 'First card', 'Sample description')
+  SELF.SetDarkMode(1)
+  SELF.SetLanguage('en')
+
+Kanban.OnCardMoved  PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColumn)
+  CODE
+  ! React to the move (e.g. update a status field in the database)</code></pre>
+    </section>
+
+    <!-- ══════════════════ WHAT'S NEW ══════════════════ -->
+    <section id="whatsnew">
+      <h2>What's new in this version</h2>
+      <p>Summary of the added capabilities — all backward-compatible, none change the behaviour of any existing method:</p>
+      <div class="grid-2">
+        <div>
+          <h3>Hide columns <span class="badge">New</span></h3>
+          <p><code>SetColumnVisible(columnId, visible)</code> — hides/shows a column while keeping its cards.</p>
+        </div>
+        <div>
+          <h3>ES/EN language <span class="badge">New</span></h3>
+          <p><code>SetLanguage(lang)</code> — translates the control chrome, not card content.</p>
+        </div>
+        <div>
+          <h3>Sort by priority/date <span class="badge">New</span></h3>
+          <p><code>SetCardPriority</code> + <code>SetColumnSortMode</code> — auto-sort as the default order, with free manual dragging afterward.</p>
+        </div>
+        <div>
+          <h3>Typography &amp; contrast <span class="badge">New</span></h3>
+          <p><code>SetFontSize(px)</code> + automatic black/white text contrast based on background colour.</p>
+        </div>
+        <div>
+          <h3>Save / restore state <span class="badge">New</span></h3>
+          <p><code>GetBoardState()</code> / <code>SetBoardState(json)</code> — persists dark mode, read-only, width, typography, language and more.</p>
+        </div>
+        <div>
+          <h3>Filter by user/assignee <span class="badge">New</span></h3>
+          <p><code>SetAssigneeFilter(assignee)</code> — one-call "My Tasks" mode; hides the name on the card while the filter is active.</p>
+        </div>
+        <div>
+          <h3>Planned for a later stage</h3>
+          <p>Dynamic column width (dividing the control's available width across columns and resizing) is left for a future stage.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      GenericKanban — MIT License. See <code>README.md</code> at the repository root for the quick-reference table and build details.
+    </footer>
+  </main>
+</div>
+</body>
+</html>

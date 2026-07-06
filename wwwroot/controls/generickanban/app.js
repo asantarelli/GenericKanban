@@ -4,6 +4,44 @@
   function isMenuParent(node) {
     return node.type === "sub" || node.type === "radio";
   }
+  var STRINGS = {
+    en: {
+      overdue: "OVERDUE",
+      dueLabelPrefix: "Due: ",
+      filterHeading: "Filter",
+      filterButton: "\u22C2 Filter",
+      clearAll: "Clear all",
+      searchPlaceholder: "Search cards\u2026",
+      viewBoard: "\u229E Board",
+      viewTable: "\u2630 Table",
+      colCard: "Card",
+      colColumn: "Column",
+      colTag: "Tag",
+      colAssignee: "Assignee",
+      colDueDate: "Due Date",
+      colProgress: "Progress",
+      colPriority: "Priority",
+      colDescription: "Description"
+    },
+    es: {
+      overdue: "VENCIDA",
+      dueLabelPrefix: "Vence: ",
+      filterHeading: "Filtro",
+      filterButton: "\u22C2 Filtro",
+      clearAll: "Limpiar todo",
+      searchPlaceholder: "Buscar tarjetas\u2026",
+      viewBoard: "\u229E Tablero",
+      viewTable: "\u2630 Tabla",
+      colCard: "Tarjeta",
+      colColumn: "Columna",
+      colTag: "Etiqueta",
+      colAssignee: "Responsable",
+      colDueDate: "Vencimiento",
+      colProgress: "Progreso",
+      colPriority: "Prioridad",
+      colDescription: "Descripci\xF3n"
+    }
+  };
   var kanban = {
     _columns: {},
     _cards: {},
@@ -14,6 +52,10 @@
     _currentView: "board",
     _titleBg: "#1a1a1a",
     _titleText: "#ffffff",
+    _lang: "en",
+    _columnSortModes: {},
+    _assigneeFilter: "",
+    // '' = show all assignees
     // Context menu state
     _menuDef: [],
     _menuMap: {},
@@ -36,6 +78,35 @@
     _selectedTableRow: null,
     _dragScrollRaf: 0,
     _dragPointerX: 0,
+    // ── Localization ───────────────────────────────────────────────────────────
+    _t(key) {
+      var _a, _b;
+      return (_b = (_a = STRINGS[this._lang][key]) != null ? _a : STRINGS.en[key]) != null ? _b : key;
+    },
+    setLanguage(lang) {
+      this._lang = lang === "es" ? "es" : "en";
+      this._applyI18n();
+    },
+    _applyI18n() {
+      document.querySelectorAll(".kv-table thead th[data-i18n]").forEach((th) => {
+        const key = th.dataset.i18n;
+        th.textContent = this._t(key);
+      });
+      this._updateSortHeaders();
+      this._rebuildFilterPanel();
+      this._updateFilterBadge();
+      const btn = document.getElementById("view-btn");
+      if (btn) btn.textContent = (this._currentView === "board" ? this._t("viewBoard") : this._t("viewTable")) + " \u25BE";
+      const dropdown = document.getElementById("view-dropdown");
+      if (dropdown) {
+        dropdown.querySelectorAll(".view-opt").forEach((li) => {
+          const v = li.dataset.view;
+          li.textContent = v === "board" ? this._t("viewBoard") : this._t("viewTable");
+        });
+      }
+      Object.keys(this._cards).forEach((id) => this._rebuildCard(id));
+      if (this._currentView === "table") this._refreshTable();
+    },
     // ── Sortable ───────────────────────────────────────────────────────────────
     _startDragScroll() {
       const board = document.getElementById("board");
@@ -153,25 +224,27 @@
       const t = document.createElement("div");
       t.className = "card-title";
       t.textContent = card.title;
-      if (card.textColor) t.style.color = card.textColor;
+      const effTextColor = card.textColor || card.textColorAuto;
+      if (effTextColor) t.style.color = effTextColor;
       content.appendChild(t);
       if (card.body) {
         const b = document.createElement("div");
         b.className = "card-body";
         b.textContent = card.body;
-        if (card.textColor) b.style.color = card.textColor;
+        if (effTextColor) b.style.color = effTextColor;
         content.appendChild(b);
       }
       if (card.overdue) {
         const ov = document.createElement("div");
         ov.className = "card-overdue";
-        ov.textContent = "OVERDUE";
+        ov.textContent = this._t("overdue");
         content.appendChild(ov);
       }
-      if (card.assignee || card.dueDate) {
+      const showAssignee = !!card.assignee && (!this._assigneeFilter || this._assigneeFilter !== card.assignee);
+      if (showAssignee || card.dueDate) {
         const meta = document.createElement("div");
         meta.className = "card-meta";
-        if (card.assignee) {
+        if (showAssignee) {
           const a = document.createElement("span");
           a.className = "card-assignee";
           a.textContent = card.assignee;
@@ -180,7 +253,7 @@
         if (card.dueDate) {
           const d = document.createElement("span");
           d.className = "card-due";
-          d.textContent = "Due: " + card.dueDate;
+          d.textContent = this._t("dueLabelPrefix") + card.dueDate;
           meta.appendChild(d);
         }
         content.appendChild(meta);
@@ -430,7 +503,18 @@
       col.appendChild(header);
       col.appendChild(cardList);
       document.getElementById("board").appendChild(col);
-      const entry = { id, el: col, header, titleEl, count, cardList, sortable: null, cardCount: 0 };
+      const entry = {
+        id,
+        el: col,
+        header,
+        titleEl,
+        count,
+        cardList,
+        sortable: null,
+        cardCount: 0,
+        visible: true,
+        headerTextColorSet: false
+      };
       this._columns[id] = entry;
       this._initSortable(entry);
     },
@@ -452,13 +536,20 @@
     },
     setColumnHeaderColor(id, hex) {
       const col = this._columns[id];
-      if (col) col.header.style.backgroundColor = hex;
+      if (!col) return;
+      col.header.style.backgroundColor = hex;
+      if (!col.headerTextColorSet && hex) {
+        const auto = this._contrastColor(hex);
+        col.titleEl.style.color = auto;
+        col.count.style.color = auto;
+      }
     },
     setColumnHeaderTextColor(id, hex) {
       const col = this._columns[id];
       if (col) {
         col.titleEl.style.color = hex;
         col.count.style.color = hex;
+        col.headerTextColorSet = true;
       }
     },
     setDarkMode(enabled) {
@@ -474,6 +565,7 @@
       Object.values(this._columns).forEach((col) => {
         col.titleEl.style.color = hex;
         col.count.style.color = hex;
+        col.headerTextColorSet = true;
       });
     },
     setColumnBodyColor(id, hex) {
@@ -490,11 +582,14 @@
         body: body || "",
         bgColor: null,
         textColor: null,
+        textColorAuto: null,
         borderColor: null,
         tag: null,
         tagColor: null,
         assignee: null,
         dueDate: null,
+        dueDateSort: null,
+        priority: null,
         progress: -1,
         overdue: false,
         statusColor: null,
@@ -509,6 +604,7 @@
       this._columns[columnId].cardCount = (this._columns[columnId].cardCount || 0) + 1;
       this._columns[columnId].cardList.appendChild(card.el);
       this._refreshCount(columnId);
+      this._maybeResortColumn(columnId);
     },
     removeCard(cardId) {
       const card = this._cards[cardId];
@@ -543,6 +639,7 @@
       const card = this._cards[cardId];
       if (!card) return;
       card.bgColor = hex;
+      if (!card.textColor && hex) card.textColorAuto = this._contrastColor(hex);
       this._rebuildCard(cardId);
     },
     setCardTextColor(cardId, hex) {
@@ -586,7 +683,19 @@
       const card = this._cards[cardId];
       if (!card) return;
       card.dueDate = dueDate || null;
+      card.dueDateSort = this._computeDueDateSort(dueDate);
       this._rebuildCard(cardId);
+      this._maybeResortColumn(card.columnId);
+    },
+    // Normalizes DD/MM/YYYY or DD/MM/YY into a sortable YYYYMMDD string.
+    // Falls back to the raw string if unparseable (sorts last/lexically, same as table view).
+    _computeDueDateSort(d) {
+      if (!d) return null;
+      const m4 = d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (m4) return `${m4[3]}${m4[2]}${m4[1]}`;
+      const m2 = d.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+      if (m2) return `20${m2[3]}${m2[2]}${m2[1]}`;
+      return d;
     },
     setCardProgress(cardId, progress) {
       const card = this._cards[cardId];
@@ -646,6 +755,48 @@
       card.visible = visible;
       this._applyFilters();
     },
+    setColumnVisible(columnId, visible) {
+      const col = this._columns[columnId];
+      if (!col) return;
+      col.visible = visible;
+      col.el.style.display = visible ? "" : "none";
+    },
+    setCardPriority(cardId, priority) {
+      const card = this._cards[cardId];
+      if (!card) return;
+      card.priority = priority >= 0 ? priority : null;
+      this._maybeResortColumn(card.columnId);
+    },
+    setColumnSortMode(columnId, mode) {
+      this._columnSortModes[columnId] = mode;
+      if (mode !== "none") this._resortColumn(columnId);
+    },
+    _maybeResortColumn(columnId) {
+      const mode = this._columnSortModes[columnId];
+      if (mode && mode !== "none") this._resortColumn(columnId);
+    },
+    // One-time DOM reorder — does not touch SortableJS config/state, so free
+    // drag continues to work immediately after this runs (onEnd is untouched).
+    // Triggered by SetColumnSortMode, card add, and priority/due-date changes —
+    // never by drag-drop, so manual reordering always wins until the next trigger.
+    _resortColumn(columnId) {
+      const col = this._columns[columnId];
+      if (!col) return;
+      const mode = this._columnSortModes[columnId];
+      const cardEls = Array.from(col.cardList.children);
+      const keyed = cardEls.map((el) => {
+        const card = this._cards[el.dataset.cardId];
+        let key;
+        if (mode === "priority") {
+          key = card && card.priority != null ? card.priority : Number.MAX_SAFE_INTEGER;
+        } else {
+          key = card && card.dueDateSort ? Number(card.dueDateSort) || Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+        }
+        return { el, key };
+      });
+      keyed.sort((a, b) => a.key - b.key);
+      keyed.forEach(({ el }) => col.cardList.appendChild(el));
+    },
     // ── Board Methods ──────────────────────────────────────────────────────────
     setReadOnly(readOnly) {
       Object.values(this._columns).forEach((col) => {
@@ -669,7 +820,7 @@
       const filterBtn = document.createElement("button");
       filterBtn.className = "view-btn filter-btn";
       filterBtn.id = "filter-btn";
-      filterBtn.textContent = "\u22C2 Filter";
+      filterBtn.textContent = this._t("filterButton");
       const filterPanel = document.createElement("div");
       filterPanel.className = "filter-panel";
       filterPanel.id = "filter-panel";
@@ -693,12 +844,12 @@
       const btn = document.createElement("button");
       btn.className = "view-btn";
       btn.id = "view-btn";
-      btn.textContent = this._currentView === "board" ? "\u229E Board \u25BE" : "\u2630 Table \u25BE";
+      btn.textContent = (this._currentView === "board" ? this._t("viewBoard") : this._t("viewTable")) + " \u25BE";
       const dropdown = document.createElement("ul");
       dropdown.className = "view-dropdown";
       dropdown.id = "view-dropdown";
       ["board", "table"].forEach((v) => {
-        const label = v === "board" ? "\u229E Board" : "\u2630 Table";
+        const label = v === "board" ? this._t("viewBoard") : this._t("viewTable");
         const li = document.createElement("li");
         li.className = "view-opt" + (this._currentView === v ? " view-opt--active" : "");
         li.textContent = label;
@@ -738,7 +889,7 @@
       this._currentView = view;
       const btn = document.getElementById("view-btn");
       const dropdown = document.getElementById("view-dropdown");
-      if (btn) btn.textContent = view === "board" ? "\u229E Board \u25BE" : "\u2630 Table \u25BE";
+      if (btn) btn.textContent = (view === "board" ? this._t("viewBoard") : this._t("viewTable")) + " \u25BE";
       if (dropdown) {
         dropdown.classList.remove("view-dropdown--open");
         dropdown.querySelectorAll(".view-opt").forEach((li) => {
@@ -911,17 +1062,24 @@
       }
       this._applyFilters();
     },
+    // '' shows every assignee; a specific name shows only that assignee's cards
+    // and hides the (now redundant) assignee label on each visible card.
+    setAssigneeFilter(assignee) {
+      this._assigneeFilter = assignee || "";
+      Object.keys(this._cards).forEach((id) => this._rebuildCard(id));
+      this._applyFilters();
+    },
     _buildFilterPanel(panel) {
       panel.innerHTML = "";
       const header = document.createElement("div");
       header.className = "fp-header";
       const heading = document.createElement("span");
       heading.className = "fp-heading";
-      heading.textContent = "Filter";
+      heading.textContent = this._t("filterHeading");
       header.appendChild(heading);
       const clearBtn = document.createElement("button");
       clearBtn.className = "fp-clear";
-      clearBtn.textContent = "Clear all";
+      clearBtn.textContent = this._t("clearAll");
       clearBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
         this._activeFilters = {};
@@ -938,7 +1096,7 @@
         const si = document.createElement("input");
         si.type = "text";
         si.className = "fp-search";
-        si.placeholder = "Search cards\u2026";
+        si.placeholder = this._t("searchPlaceholder");
         si.value = this._searchText;
         si.addEventListener("input", (e) => {
           e.stopPropagation();
@@ -1011,11 +1169,12 @@
       const btn = document.getElementById("filter-btn");
       if (!btn) return;
       const count = Object.keys(this._activeFilters).length + (this._searchEnabled && this._searchText.trim() ? 1 : 0);
-      btn.textContent = count > 0 ? `\u22C2 Filter (${count})` : "\u22C2 Filter";
+      btn.textContent = count > 0 ? `${this._t("filterButton")} (${count})` : this._t("filterButton");
       btn.classList.toggle("filter-btn--active", count > 0);
     },
     _cardPassesFilter(card) {
       var _a;
+      if (this._assigneeFilter && card.assignee !== this._assigneeFilter) return false;
       for (const [groupId, activeSet] of Object.entries(this._activeFilters)) {
         if (!activeSet.size) continue;
         const val = (_a = this._cardFilters[card.id]) == null ? void 0 : _a[groupId];
@@ -1053,6 +1212,21 @@
     setColumnWidth(px) {
       this._colWidth = px;
       Object.values(this._columns).forEach((col) => col.el.style.width = px + "px");
+    },
+    setFontSize(px) {
+      const size = typeof px === "number" && px > 0 ? px : 14;
+      document.documentElement.style.setProperty("--kb-font-size", size + "px");
+    },
+    // Pure luminance-based black/white contrast pick — theme-agnostic by design,
+    // used only as a fallback when no explicit text color was set.
+    _contrastColor(bgHex) {
+      const hex = bgHex.replace("#", "");
+      if (hex.length !== 6) return "#000000";
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.55 ? "#000000" : "#ffffff";
     }
   };
   document.addEventListener("click", () => {
@@ -1069,6 +1243,7 @@
   });
   window.kanban = kanban;
   kanban._buildToolbar();
+  kanban._applyI18n();
   function sendReady(attempts) {
     if (attempts > 100) return;
     try {

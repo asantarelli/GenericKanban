@@ -14,6 +14,7 @@ interface SortableOptions {
   chosenClass?: string;
   dragClass?: string;
   emptyInsertThreshold?: number;
+  onStart?(): void;
   onEnd?(evt: SortableEvent): void;
 }
 

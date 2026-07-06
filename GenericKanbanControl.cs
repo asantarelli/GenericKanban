@@ -70,6 +70,30 @@ namespace GenericKanban
         // before C# responds.
         private int _pendingRightClickSeq;
 
+        // Shadow state for board-level settings, so GetBoardState() can read them
+        // back without a JS round-trip. Populated by the corresponding setters.
+        private bool _darkMode = false;
+        private bool _readOnly = false;
+        private int _columnWidth = 260;
+        private string _boardTitle = "";
+        private int _boardTitleColorBg = -1;
+        private int _boardTitleColorText = -1;
+        private string _language = "en";
+        private int _fontSize = 14;
+        private string _assigneeFilter = "";
+
+        // Shadow state: columnId → visible (absent = visible)
+        private readonly ConcurrentDictionary<string, bool> _columnVisibility =
+            new ConcurrentDictionary<string, bool>(StringComparer.Ordinal);
+
+        // Shadow state: cardId → priority (absent = no priority set)
+        private readonly ConcurrentDictionary<string, int> _cardPriority =
+            new ConcurrentDictionary<string, int>(StringComparer.Ordinal);
+
+        // Shadow state: columnId → sort mode ("none"|"priority"|"date", absent = "none")
+        private readonly ConcurrentDictionary<string, string> _columnSortModes =
+            new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+
         // ----------------------------------------------------------------
         // Dependency isolation -- load our managed deps from a private
         // subfolder so version conflicts with other COM controls are avoided.
@@ -349,6 +373,7 @@ namespace GenericKanban
 
         public void SetDarkMode(int enabled)
         {
+            _darkMode = enabled != 0;
             Exec($"kanban.setDarkMode({(enabled != 0 ? "true" : "false")})");
         }
 
@@ -389,6 +414,12 @@ namespace GenericKanban
         public void SetCardVisible(string cardId, int visible)
         {
             Exec($"kanban.setCardVisible({J(cardId)},{(visible != 0 ? "true" : "false")})");
+        }
+
+        public void SetColumnVisible(string columnId, int visible)
+        {
+            _columnVisibility[columnId] = visible != 0;
+            Exec($"kanban.setColumnVisible({J(columnId)},{(visible != 0 ? "true" : "false")})");
         }
 
         [DispId(46)]
@@ -494,6 +525,7 @@ namespace GenericKanban
 
         public void SetColumnWidth(int width)
         {
+            _columnWidth = width;
             Exec($"kanban.setColumnWidth({width})");
         }
 
@@ -528,6 +560,7 @@ namespace GenericKanban
 
         public void SetReadOnly(int readOnly)
         {
+            _readOnly = readOnly != 0;
             Exec($"kanban.setReadOnly({(readOnly != 0 ? "true" : "false")})");
         }
 
@@ -538,6 +571,9 @@ namespace GenericKanban
 
         public void SetBoardTitle(string title, int colorBg, int colorText)
         {
+            _boardTitle = title ?? "";
+            _boardTitleColorBg = colorBg;
+            _boardTitleColorText = colorText;
             Exec($"kanban.setBoardTitle({J(title)},{J(ColorToHex(colorBg))},{J(ColorToHex(colorText))})");
         }
 
@@ -621,6 +657,105 @@ namespace GenericKanban
         public void SetCardFilterValue(string cardId, string groupId, string itemId)
         {
             Exec($"kanban.setCardFilterValue({J(cardId)},{J(groupId)},{J(itemId)})");
+        }
+
+        // ----------------------------------------------------------------
+        // IGenericKanban  Localization
+        // ----------------------------------------------------------------
+
+        public void SetLanguage(string lang)
+        {
+            _language = (lang == "es") ? "es" : "en";
+            Exec($"kanban.setLanguage({J(_language)})");
+        }
+
+        // ----------------------------------------------------------------
+        // IGenericKanban  Card priority / column sort
+        // ----------------------------------------------------------------
+
+        public void SetCardPriority(string cardId, int priority)
+        {
+            if (priority < 0) _cardPriority.TryRemove(cardId, out _);
+            else _cardPriority[cardId] = priority;
+            Exec($"kanban.setCardPriority({J(cardId)},{priority})");
+        }
+
+        public void SetColumnSortMode(string columnId, string mode)
+        {
+            var m = (mode == "priority" || mode == "date") ? mode : "none";
+            _columnSortModes[columnId] = m;
+            Exec($"kanban.setColumnSortMode({J(columnId)},{J(m)})");
+        }
+
+        // ----------------------------------------------------------------
+        // IGenericKanban  Typography
+        // ----------------------------------------------------------------
+
+        public void SetFontSize(int px)
+        {
+            _fontSize = px > 0 ? px : 14;
+            Exec($"kanban.setFontSize({_fontSize})");
+        }
+
+        // ----------------------------------------------------------------
+        // IGenericKanban  Board state persistence
+        // ----------------------------------------------------------------
+
+        public string GetBoardState()
+        {
+            var state = new JObject
+            {
+                ["version"] = 1,
+                ["darkMode"] = _darkMode,
+                ["readOnly"] = _readOnly,
+                ["columnWidth"] = _columnWidth,
+                ["fontSize"] = _fontSize,
+                ["language"] = _language,
+                ["boardTitle"] = _boardTitle,
+                ["boardTitleColorBg"] = _boardTitleColorBg,
+                ["boardTitleColorText"] = _boardTitleColorText,
+                ["columnVisibility"] = JObject.FromObject(_columnVisibility),
+                ["columnSortModes"] = JObject.FromObject(_columnSortModes),
+                ["assigneeFilter"] = _assigneeFilter,
+            };
+            return state.ToString(Newtonsoft.Json.Formatting.None);
+        }
+
+        public void SetBoardState(string json)
+        {
+            JObject state;
+            try { state = JObject.Parse(json ?? "{}"); }
+            catch { return; } // malformed JSON: no-op rather than throw across the COM boundary
+
+            if (state["darkMode"] != null) SetDarkMode((bool)state["darkMode"] ? 1 : 0);
+            if (state["readOnly"] != null) SetReadOnly((bool)state["readOnly"] ? 1 : 0);
+            if (state["columnWidth"] != null) SetColumnWidth((int)state["columnWidth"]);
+            if (state["fontSize"] != null) SetFontSize((int)state["fontSize"]);
+            if (state["language"] != null) SetLanguage((string)state["language"]);
+
+            if (state["boardTitle"] != null || state["boardTitleColorBg"] != null || state["boardTitleColorText"] != null)
+            {
+                SetBoardTitle(
+                    (string)state["boardTitle"] ?? _boardTitle,
+                    state["boardTitleColorBg"] != null ? (int)state["boardTitleColorBg"] : _boardTitleColorBg,
+                    state["boardTitleColorText"] != null ? (int)state["boardTitleColorText"] : _boardTitleColorText);
+            }
+
+            if (state["columnVisibility"] is JObject cv)
+                foreach (var kv in cv)
+                    SetColumnVisible(kv.Key, (bool)kv.Value ? 1 : 0);
+
+            if (state["columnSortModes"] is JObject cs)
+                foreach (var kv in cs)
+                    SetColumnSortMode(kv.Key, (string)kv.Value);
+
+            if (state["assigneeFilter"] != null) SetAssigneeFilter((string)state["assigneeFilter"]);
+        }
+
+        public void SetAssigneeFilter(string assignee)
+        {
+            _assigneeFilter = assignee ?? "";
+            Exec($"kanban.setAssigneeFilter({J(_assigneeFilter)})");
         }
 
         // ----------------------------------------------------------------

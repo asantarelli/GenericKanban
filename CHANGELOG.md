@@ -2,6 +2,23 @@
 
 All notable changes to GenericKanban will be documented here.
 
+## [1.3.0] - 2026-07-06
+
+### Added
+- **`SetColumnVisible(pColumnId, pVisible)`** — shows/hides a column without removing it or its cards
+- **`SetColumnSortMode(pColumnId, pMode)`** — auto-sorts a column by `'priority'` or `'date'` (or `'none'`); re-applies on card add or on priority/due-date change; manual drag-reordering afterward is preserved until the next trigger
+- **`SetCardPriority(pCardId, pPriority)`** — numeric priority (lower = higher priority); `-1` clears it
+- **`SetLanguage(pLang)`** — UI chrome language, `'en'` or `'es'` (default `'en'`); translates table headers, filter panel, OVERDUE badge and due-date prefix — does not translate card content
+- **`SetFontSize(pPx)`** — global base font size in pixels (default 14); all other text scales proportionally via a CSS custom property
+- **Automatic text-contrast fallback** — when a background colour is set without an explicit paired text colour (`SetCardBackgroundColor`, `SetColumnHeaderColor`), the control picks black or white text based on luminance; an explicit `SetCardTextColor` / `SetColumnHeaderTextColor` call always overrides the automatic choice
+- **`GetBoardState()`** — returns a JSON string with all board-level settings (dark mode, read-only, column width, font size, language, board title/colours, per-column visibility, per-column sort mode, assignee filter)
+- **`SetBoardState(pJson)`** — restores board-level settings from a `GetBoardState()` JSON string; safe to call before or after `PageReady`
+- **`SetAssigneeFilter(pAssignee)`** — shows only cards whose assignee (`SetCardAssignee`) matches exactly; pass an empty string to show every assignee again. Composes with the generic filter panel and text search. While a specific assignee is active, that assignee's name is hidden on the card (redundant — every visible card already belongs to them) and reappears automatically when the filter is cleared
+
+### Changed
+- `SetDarkMode`, `SetReadOnly`, `SetColumnWidth`, `SetBoardTitle` now also store their value in C# shadow state so `GetBoardState()` can read them back
+- `KanbanWrapper.clw`'s `Q_()` string-escaping buffer enlarged from `CSTRING(4002)` to `CSTRING(16002)` to accommodate larger JSON payloads (e.g. `SetBoardState` on boards with many columns)
+
 ## [1.2.0] - 2026-04-08
 
 ### Added

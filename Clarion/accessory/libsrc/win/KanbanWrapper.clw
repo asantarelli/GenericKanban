@@ -284,6 +284,18 @@ KanbanWrapperClass.ShowContextMenu          PROCEDURE(STRING pCardId)
   CODE
   SELF.Ctrl{'ShowContextMenu(' & SELF.Q_(pCardId) & ')'}
 
+KanbanWrapperClass.SetColumnVisible         PROCEDURE(STRING pColumnId, LONG pVisible)
+  CODE
+  SELF.Ctrl{'SetColumnVisible(' & SELF.Q_(pColumnId) & ',' & pVisible & ')'}
+
+KanbanWrapperClass.SetCardPriority          PROCEDURE(STRING pCardId, LONG pPriority)
+  CODE
+  SELF.Ctrl{'SetCardPriority(' & SELF.Q_(pCardId) & ',' & pPriority & ')'}
+
+KanbanWrapperClass.SetColumnSortMode        PROCEDURE(STRING pColumnId, STRING pMode)
+  CODE
+  SELF.Ctrl{'SetColumnSortMode(' & SELF.Q_(pColumnId) & ',' & SELF.Q_(pMode) & ')'}
+
 ! ---------------------------------------------------------------------------
 ! Board appearance
 ! ---------------------------------------------------------------------------
@@ -306,6 +318,28 @@ KanbanWrapperClass.SetDarkMode              PROCEDURE(LONG pEnabled)
 KanbanWrapperClass.SetReadOnly              PROCEDURE(LONG pReadOnly)
   CODE
   SELF.Ctrl{'SetReadOnly(' & pReadOnly & ')'}
+
+KanbanWrapperClass.SetLanguage              PROCEDURE(STRING pLang)
+  CODE
+  SELF.Ctrl{'SetLanguage(' & SELF.Q_(pLang) & ')'}
+
+KanbanWrapperClass.SetFontSize              PROCEDURE(LONG pPx)
+  CODE
+  SELF.Ctrl{'SetFontSize(' & pPx & ')'}
+
+KanbanWrapperClass.GetBoardState            PROCEDURE()
+ReturnVal                                     STRING(8000)
+  CODE
+  ReturnVal = SELF.Ctrl{'GetBoardState()'}
+  RETURN CLIP(ReturnVal)
+
+KanbanWrapperClass.SetBoardState            PROCEDURE(STRING pJson)
+  CODE
+  SELF.Ctrl{'SetBoardState(' & SELF.Q_(pJson) & ')'}
+
+KanbanWrapperClass.SetAssigneeFilter        PROCEDURE(STRING pAssignee)
+  CODE
+  SELF.Ctrl{'SetAssigneeFilter(' & SELF.Q_(pAssignee) & ')'}
 
 ! ---------------------------------------------------------------------------
 ! Context menu
@@ -443,7 +477,7 @@ KanbanWrapperClass.OnOtherEvent             PROCEDURE(STRING pEventName)
 ! Private helpers
 ! ---------------------------------------------------------------------------
 KanbanWrapperClass.Q_               PROCEDURE(STRING pValue)
-Cleaned                               CSTRING(4002)
+Cleaned                               CSTRING(16002)
 i                                     LONG, AUTO
 ch                                    STRING(1)
   CODE

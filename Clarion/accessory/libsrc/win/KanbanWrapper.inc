@@ -99,6 +99,9 @@ SetColumnWipLimit         PROCEDURE(STRING pColumnId, LONG pMaxCards),VIRTUAL
 GetColumnCardCount        PROCEDURE(STRING pColumnId), LONG,VIRTUAL
 SetCardVisible            PROCEDURE(STRING pCardId, LONG pVisible),VIRTUAL
 ShowContextMenu           PROCEDURE(STRING pCardId),VIRTUAL
+SetColumnVisible          PROCEDURE(STRING pColumnId, LONG pVisible),VIRTUAL
+SetCardPriority           PROCEDURE(STRING pCardId, LONG pPriority),VIRTUAL
+SetColumnSortMode         PROCEDURE(STRING pColumnId, STRING pMode),VIRTUAL
 
 ! -- Board appearance --
 SetBoardBackgroundColor   PROCEDURE(LONG pColor),VIRTUAL
@@ -106,6 +109,11 @@ SetColumnWidth            PROCEDURE(LONG pWidth),VIRTUAL
 SetBoardTitle             PROCEDURE(STRING pTitle, LONG pColorBg, LONG pColorText),VIRTUAL
 SetDarkMode               PROCEDURE(LONG pEnabled),VIRTUAL
 SetReadOnly               PROCEDURE(LONG pReadOnly),VIRTUAL
+SetLanguage               PROCEDURE(STRING pLang),VIRTUAL
+SetFontSize               PROCEDURE(LONG pPx),VIRTUAL
+GetBoardState             PROCEDURE(), STRING,VIRTUAL
+SetBoardState             PROCEDURE(STRING pJson),VIRTUAL
+SetAssigneeFilter         PROCEDURE(STRING pAssignee),VIRTUAL
 
 ! -- Context menu --
 ClearContextMenu          PROCEDURE,VIRTUAL

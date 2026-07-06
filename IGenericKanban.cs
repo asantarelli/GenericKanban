@@ -272,5 +272,69 @@ namespace GenericKanban
         /// </summary>
         [DispId(46)]
         void ShowContextMenu(string cardId);
+
+        // ── Column Visibility ────────────────────────────────────────────────
+
+        /// <summary>Shows (1) or hides (0) a column without removing it or its cards from the board.</summary>
+        [DispId(47)]
+        void SetColumnVisible(string columnId, int visible);
+
+        // ── Localization ──────────────────────────────────────────────────────
+
+        /// <summary>Sets the UI chrome language: "en" or "es". Unrecognized values fall back to "en". Does not translate card content (titles/body/tags), only control chrome.</summary>
+        [DispId(48)]
+        void SetLanguage(string lang);
+
+        // ── Card Priority / Column Sort ──────────────────────────────────────
+
+        /// <summary>Sets a numeric priority on a card (lower = higher priority). Pass -1 to clear.</summary>
+        [DispId(49)]
+        void SetCardPriority(string cardId, int priority);
+
+        /// <summary>
+        /// Sets the auto-sort mode for a column: "none", "priority", or "date".
+        /// Re-sorts the column immediately and again whenever a card is added or its
+        /// priority/due date changes. Manual drag-reordering afterward is preserved
+        /// until the next add/update triggers another auto-sort pass.
+        /// </summary>
+        [DispId(50)]
+        void SetColumnSortMode(string columnId, string mode);
+
+        // ── Typography / Contrast ─────────────────────────────────────────────
+
+        /// <summary>Sets the global base font size in pixels for all board/card text (default 14).</summary>
+        [DispId(51)]
+        void SetFontSize(int px);
+
+        // ── Board State Persistence ───────────────────────────────────────────
+
+        /// <summary>
+        /// Returns a JSON string capturing current board-level settings (dark mode,
+        /// read-only, column width, board title/colors, font size, language, per-column
+        /// visibility, per-column sort mode). Does NOT include columns/cards themselves.
+        /// </summary>
+        [DispId(52)]
+        string GetBoardState();
+
+        /// <summary>
+        /// Restores board-level settings from a JSON string produced by GetBoardState.
+        /// Safe to call before or after PageReady. Unknown or missing fields are left
+        /// at current defaults; malformed JSON is a no-op.
+        /// </summary>
+        [DispId(53)]
+        void SetBoardState(string json);
+
+        // ── Assignee (User) Filter ────────────────────────────────────────────
+
+        /// <summary>
+        /// Shows only cards whose assignee (set via SetCardAssignee) matches exactly.
+        /// Pass an empty string to clear the filter and show cards from every assignee.
+        /// Composes with the generic filter panel and text search (all must pass).
+        /// While a specific assignee is active, the assignee label on each card is
+        /// hidden (redundant, since every visible card belongs to that assignee) and
+        /// reappears automatically when the filter is cleared.
+        /// </summary>
+        [DispId(54)]
+        void SetAssigneeFilter(string assignee);
     }
 }

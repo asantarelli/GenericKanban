@@ -180,7 +180,7 @@
 <nav id="sidebar">
   <div class="nav-header">
     <div class="logo">📋 GenericKanban</div>
-    <div class="version">v1.2.0 · Clarion COM Control</div>
+    <div class="version">v1.3.0 · Clarion COM Control</div>
   </div>
 
   <div class="nav-section">Getting Started</div>
@@ -204,6 +204,7 @@
   <a href="#api-events" class="sub">Events</a>
   <a href="#api-new" class="sub">New in v1.1</a>
   <a href="#api-new2" class="sub">New in v1.2</a>
+  <a href="#api-new3" class="sub">New in v1.3</a>
 
   <div class="nav-section">Data Structures</div>
   <a href="#ds-cardmeta">KanbanCardMeta</a>
@@ -223,6 +224,9 @@
   <a href="#ex-wip">WIP Limits</a>
   <a href="#ex-clicks">Click Events</a>
   <a href="#ex-movecard">Move Card &amp; Visibility</a>
+  <a href="#ex-sort">Column Auto-Sort</a>
+  <a href="#ex-language">Language &amp; Font Size</a>
+  <a href="#ex-persistence">Save / Restore State</a>
 </nav>
 
 <!-- ═══════════════ MAIN ═══════════════ -->
@@ -507,6 +511,8 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetColumnBodyColor(pColumnId, pColor)</td><td class="desc">Sets the background colour of the column body (card area).</td></tr>
         <tr><td class="sig">SetColumnWipLimit(pColumnId, pMaxCards)</td><td class="desc"><strong>New.</strong> Sets a WIP (Work In Progress) limit. The count badge shows <code>count/limit</code> and turns <strong style="color:#e67e22">amber</strong> when at the limit, <strong style="color:#e74c3c">red</strong> when exceeded. Pass <code>0</code> to remove the limit.</td></tr>
         <tr><td class="sig">GetColumnCardCount(pColumnId)</td><td class="desc"><strong>New.</strong> Returns the current number of cards in a column as a <code>LONG</code>. Computed from C# shadow state — no round-trip to JS.</td></tr>
+        <tr><td class="sig">SetColumnVisible(pColumnId, pVisible)</td><td class="desc"><strong>New in v1.3.</strong> Shows (<code>1</code>) or hides (<code>0</code>) a column without removing it or its cards.</td></tr>
+        <tr><td class="sig">SetColumnSortMode(pColumnId, pMode)</td><td class="desc"><strong>New in v1.3.</strong> Auto-sorts a column by <code>'priority'</code> or <code>'date'</code> (or <code>'none'</code>). Re-applies whenever a card is added or its priority/due date changes; the user can still freely drag-reorder afterward. See <a href="#ex-sort">example</a>.</td></tr>
       </tbody>
     </table>
   </section>
@@ -544,8 +550,13 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetCardProgress(pCardId, pProgress)</td><td class="desc">Sets a progress bar (0–100). Pass <code>-1</code> to hide the bar.</td></tr>
         <tr><td class="sig">SetCardOverdue(pCardId, pOverdue)</td><td class="desc">Pass <code>1</code> to highlight the card as overdue.</td></tr>
         <tr><td class="sig">SetCardStatusBar(pCardId, pLabel, pColor)</td><td class="desc">Sets a coloured status bar at the bottom of the card. <code>pLabel</code> can be blank.</td></tr>
+        <tr><td class="sig">SetCardPriority(pCardId, pPriority)</td><td class="desc"><strong>New in v1.3.</strong> Sets a numeric priority (lower = higher priority). Pass <code>-1</code> to clear it. Drives <code>SetColumnSortMode(pColumnId, 'priority')</code>.</td></tr>
       </tbody>
     </table>
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p><strong>Automatic text contrast (new in v1.3):</strong> when <code>SetCardBackgroundColor</code> is called and no explicit text colour was ever set for that card, the control picks black or white text automatically based on the background's luminance — readable in both light and dark mode. Calling <code>SetCardTextColor</code> afterward always overrides the automatic choice.</p>
+    </div>
   </section>
 
   <!-- Appearance -->
@@ -559,6 +570,10 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetColumnWidth(pWidth)</td><td class="desc">Sets all column widths in pixels (default ~280).</td></tr>
         <tr><td class="sig">SetDarkMode(pEnabled)</td><td class="desc">Pass <code>1</code> to enable dark mode, <code>0</code> for light.</td></tr>
         <tr><td class="sig">SetReadOnly(pReadOnly)</td><td class="desc">Pass <code>1</code> to disable drag-and-drop. Cards are visible but cannot be moved.</td></tr>
+        <tr><td class="sig">SetLanguage(pLang)</td><td class="desc"><strong>New in v1.3.</strong> UI chrome language: <code>'en'</code> or <code>'es'</code> (default <code>'en'</code>). Translates table headers, filter panel, OVERDUE badge, due-date prefix. Does <em>not</em> translate card content typed by the application.</td></tr>
+        <tr><td class="sig">SetFontSize(pPx)</td><td class="desc"><strong>New in v1.3.</strong> Global base font size in pixels (default 14). All other text scales proportionally.</td></tr>
+        <tr><td class="sig">GetBoardState() → STRING</td><td class="desc"><strong>New in v1.3.</strong> Returns a JSON string with dark mode, read-only, column width, font size, language, board title/colours, per-column visibility and per-column sort mode. Does not include columns or cards.</td></tr>
+        <tr><td class="sig">SetBoardState(pJson)</td><td class="desc"><strong>New in v1.3.</strong> Restores settings from a <code>GetBoardState()</code> string. Safe to call before or after <code>PageReady</code> — calls are queued internally either way.</td></tr>
       </tbody>
     </table>
   </section>
@@ -600,6 +615,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">AddFilterItem(pGroupId, pItemId, pLabel, pColor)</td><td class="desc">Adds a filter option with a colour swatch.</td></tr>
         <tr><td class="sig">SetCardFilterValue(pCardId, pGroupId, pItemId)</td><td class="desc">Associates a card with a filter value. A card can have one value per group.</td></tr>
         <tr><td class="sig">SetTextSearchEnabled(pEnabled)</td><td class="desc">Pass <code>1</code> to show the text search box in the toolbar.</td></tr>
+        <tr><td class="sig">SetAssigneeFilter(pAssignee)</td><td class="desc"><strong>New in v1.3.</strong> One-call shortcut for a "My Tasks" filter — shows only cards whose <code>SetCardAssignee</code> value matches exactly. Pass <code>''</code> to show every assignee again. Composes with the generic filter groups and text search above (all conditions must pass). While active, the assignee name is hidden on each card (redundant) and reappears automatically when cleared.</td></tr>
       </tbody>
     </table>
   </section>
@@ -940,6 +956,25 @@ MyKanban.SetCardFilterValue('c1', 'sprint', 'sprint2')
 MyKanban.AddCard('c2', 'inprogress', 'Redesign login page', 'Frontend work')
 MyKanban.SetCardFilterValue('c2', 'team',   'frontend')
 MyKanban.SetCardFilterValue('c2', 'sprint', 'sprint2')</code></pre>
+
+    <h3>"My Tasks" shortcut — SetAssigneeFilter</h3>
+    <p>Unlike the generic filter groups above, <code>SetAssigneeFilter</code> needs no setup — it filters directly against whatever string was passed to <code>SetCardAssignee</code>, so it works immediately for a "my tasks only" toggle tied to the logged-in user.</p>
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
+MyKanban.AddCard('t1', 'todo', 'Fix OAuth bug', '')
+MyKanban.SetCardAssignee('t1', 'Sarah')
+MyKanban.AddCard('t2', 'todo', 'Update docs', '')
+MyKanban.SetCardAssignee('t2', 'Mark')
+
+! ── "My Tasks" toggle button ────────────────────────────────────
+MyKanban.MyTasksToggle    PROCEDURE()
+  CODE
+  MyTasksOn = 1 - MyTasksOn
+  IF MyTasksOn
+    MyKanban.SetAssigneeFilter(CurrentUserName)   ! e.g. 'Sarah' — only her cards show,
+                                                   ! and her name is hidden on them (redundant)
+  ELSE
+    MyKanban.SetAssigneeFilter('')                 ! back to everyone; names reappear
+  END</code></pre>
   </section>
 
   <section id="ex-appearance">
@@ -1020,6 +1055,88 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
         <tr><td class="sig">ShowContextMenu(pCardId)</td><td class="desc">Shows the context menu at the right-click position for the given card. Called automatically by the base <code>OnCardRightClick</code>.</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <!-- New in v1.3 -->
+  <section id="api-new3">
+    <h2>New in v1.3</h2>
+    <p>The following methods were added in v1.3. All are fully backward-compatible — existing code requires no changes.</p>
+    <table class="api-table">
+      <thead><tr><th style="width:54%">Method</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="sig">SetColumnVisible(pColumnId, pVisible)</td><td class="desc">Shows or hides a column without removing it or its cards.</td></tr>
+        <tr><td class="sig">SetColumnSortMode(pColumnId, pMode)</td><td class="desc">Auto-sorts a column by <code>'priority'</code> or <code>'date'</code>; drag-reordering afterward is preserved.</td></tr>
+        <tr><td class="sig">SetCardPriority(pCardId, pPriority)</td><td class="desc">Numeric priority (lower = higher). <code>-1</code> clears it.</td></tr>
+        <tr><td class="sig">SetLanguage(pLang)</td><td class="desc">Translates the control's own UI chrome to English or Spanish.</td></tr>
+        <tr><td class="sig">SetFontSize(pPx)</td><td class="desc">Global base font size in pixels; other text scales proportionally.</td></tr>
+        <tr><td class="sig">GetBoardState() → STRING</td><td class="desc">Serializes board-level settings to JSON.</td></tr>
+        <tr><td class="sig">SetBoardState(pJson)</td><td class="desc">Restores board-level settings from a JSON string.</td></tr>
+        <tr><td class="sig">SetAssigneeFilter(pAssignee)</td><td class="desc">Filters the board to a single assignee's cards, or clears it with <code>''</code> to show everyone. Hides the assignee label on the card while a specific assignee is active.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <p>Card background/header colour setters now also pick an automatic black/white text colour when no explicit text colour was set — no method call required, just a behaviour change on existing setters (see the callout under <a href="#api-cards">Card Methods</a>).</p>
+    </div>
+  </section>
+
+  <section id="ex-sort">
+    <h2>Example — Column Auto-Sort</h2>
+    <p><code>SetColumnSortMode</code> sets the <strong>default/initial</strong> order for a column. It re-applies automatically when a card is added, or when <code>SetCardPriority</code> / <code>SetCardDueDate</code> changes a card already in the column — but the user can always drag-reorder freely afterward; the next trigger re-applies the auto-order.</p>
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
+MyKanban.AddColumn('todo', 'To Do', 0)
+
+MyKanban.AddCard('t1', 'todo', 'Fix login bug',       '')
+MyKanban.AddCard('t2', 'todo', 'Update docs',         '')
+MyKanban.AddCard('t3', 'todo', 'Refactor auth module', '')
+
+MyKanban.SetCardPriority('t1', 1)   ! highest priority
+MyKanban.SetCardPriority('t2', 3)
+MyKanban.SetCardPriority('t3', 2)
+
+MyKanban.SetColumnSortMode('todo', 'priority')
+! Column order is now: t1, t3, t2 — the user can still drag any of them around
+
+! Sort a different column by due date instead
+MyKanban.SetCardDueDate('t2', '15/08/26')
+MyKanban.SetColumnSortMode('testing', 'date')
+
+! Turn auto-sort off again (order stays as-is, just no longer auto-reapplied)
+MyKanban.SetColumnSortMode('todo', 'none')</code></pre>
+  </section>
+
+  <section id="ex-language">
+    <h2>Example — Language &amp; Font Size</h2>
+    <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
+MyKanban.SetLanguage('es')     ! translate table headers, filter panel, OVERDUE badge, etc.
+MyKanban.SetFontSize(16)       ! slightly larger text, everything scales proportionally
+
+! Card content (titles, body, tags, assignee) is plain text typed by your app —
+! SetLanguage does not touch it. Pass already-translated strings if you need that:
+MyKanban.AddCard('c1', 'todo', 'Corregir error de login', 'Reproducido en Chrome y Edge')
+
+! Automatic text contrast: no text colour needed for a readable card
+MyKanban.SetCardBackgroundColor('c1', 0FDEDECH)   ! light pink → black text chosen automatically
+MyKanban.SetCardBackgroundColor('c1', 02C3E50H)   ! dark navy  → white text chosen automatically
+MyKanban.SetCardTextColor('c1', 0800000H)         ! explicit colour always overrides the automatic one</code></pre>
+  </section>
+
+  <section id="ex-persistence">
+    <h2>Example — Save / Restore Board State</h2>
+    <p><code>GetBoardState()</code> / <code>SetBoardState()</code> persist dark mode, read-only, column width, font size, language, board title/colours, per-column visibility and per-column sort mode — not columns or cards, which your app re-creates as usual in <code>OnPageReady</code>.</p>
+    <pre><code class="language-clarion">! ── Saving (e.g. on CloseWindow, or a "Save Layout" button) ────
+UserPrefs.KanbanLayout = MyKanban.GetBoardState()
+! Persist UserPrefs to a file/table as your app normally does
+
+! ── Restoring (e.g. in OnPageReady, after columns are re-created) ─
+! Safe to call before OR after PageReady — calls queue internally either way.
+IF CLIP(UserPrefs.KanbanLayout) <> ''
+  MyKanban.SetBoardState(UserPrefs.KanbanLayout)
+END</code></pre>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <p>The JSON returned can grow with the number of columns (visibility + sort-mode entries). The Clarion wrapper's <code>GetBoardState</code> return value is declared <code>STRING(8000)</code> — plenty for typical boards, but verify it is not truncated on boards with an unusually large number of columns.</p>
+    </div>
   </section>
 
   <section id="ex-extend">

@@ -7,11 +7,14 @@ interface Card {
   body: string;
   bgColor: string | null;
   textColor: string | null;
+  textColorAuto: string | null; // auto-contrast fallback, only used when textColor is null
   borderColor: string | null;
   tag: string | null;
   tagColor: string | null;
   assignee: string | null;
   dueDate: string | null;
+  dueDateSort: string | null; // normalized YYYYMMDD key derived from dueDate, for column auto-sort
+  priority: number | null;
   progress: number;
   overdue: boolean;
   statusColor: string | null;
@@ -30,6 +33,8 @@ interface Column {
   cardList: HTMLDivElement;
   sortable: Sortable | null;
   cardCount: number;
+  visible: boolean;
+  headerTextColorSet: boolean; // true once an explicit header text color was set — blocks the auto-contrast fallback
 }
 
 interface MenuItemNode      { type: 'item';      id: string; label: string; }
@@ -48,6 +53,49 @@ function isMenuParent(node: MenuNode): node is MenuSubNode | MenuRadioGroupNode 
   return node.type === 'sub' || node.type === 'radio';
 }
 
+// ── Localization ─────────────────────────────────────────────────────────────
+
+type LangCode = 'en' | 'es';
+
+const STRINGS: Record<LangCode, Record<string, string>> = {
+  en: {
+    overdue: 'OVERDUE',
+    dueLabelPrefix: 'Due: ',
+    filterHeading: 'Filter',
+    filterButton: '⋂ Filter',
+    clearAll: 'Clear all',
+    searchPlaceholder: 'Search cards…',
+    viewBoard: '⊞ Board',
+    viewTable: '☰ Table',
+    colCard: 'Card',
+    colColumn: 'Column',
+    colTag: 'Tag',
+    colAssignee: 'Assignee',
+    colDueDate: 'Due Date',
+    colProgress: 'Progress',
+    colPriority: 'Priority',
+    colDescription: 'Description',
+  },
+  es: {
+    overdue: 'VENCIDA',
+    dueLabelPrefix: 'Vence: ',
+    filterHeading: 'Filtro',
+    filterButton: '⋂ Filtro',
+    clearAll: 'Limpiar todo',
+    searchPlaceholder: 'Buscar tarjetas…',
+    viewBoard: '⊞ Tablero',
+    viewTable: '☰ Tabla',
+    colCard: 'Tarjeta',
+    colColumn: 'Columna',
+    colTag: 'Etiqueta',
+    colAssignee: 'Responsable',
+    colDueDate: 'Vencimiento',
+    colProgress: 'Progreso',
+    colPriority: 'Prioridad',
+    colDescription: 'Descripción',
+  },
+};
+
 // ── Kanban object ─────────────────────────────────────────────────────────────
 
 const kanban = {
@@ -60,6 +108,9 @@ const kanban = {
   _currentView:  'board' as 'board' | 'table',
   _titleBg:      '#1a1a1a',
   _titleText:    '#ffffff',
+  _lang:         'en' as LangCode,
+  _columnSortModes: {} as Record<string, 'none' | 'priority' | 'date'>,
+  _assigneeFilter: '' as string, // '' = show all assignees
 
   // Context menu state
   _menuDef:    [] as MenuNode[],
@@ -85,6 +136,43 @@ const kanban = {
 
   _dragScrollRaf:  0,
   _dragPointerX:   0,
+
+  // ── Localization ───────────────────────────────────────────────────────────
+
+  _t(key: string): string {
+    return STRINGS[this._lang][key] ?? STRINGS.en[key] ?? key;
+  },
+
+  setLanguage(lang: string): void {
+    this._lang = (lang === 'es') ? 'es' : 'en';
+    this._applyI18n();
+  },
+
+  _applyI18n(): void {
+    // Table headers — data-i18n attributes added alongside data-col in index.html
+    document.querySelectorAll('.kv-table thead th[data-i18n]').forEach(th => {
+      const key = (th as HTMLElement).dataset.i18n!;
+      th.textContent = this._t(key);
+    });
+    this._updateSortHeaders(); // header textContent above wipes the sort-indicator span
+
+    this._rebuildFilterPanel();
+    this._updateFilterBadge();
+
+    const btn = document.getElementById('view-btn');
+    if (btn) btn.textContent = (this._currentView === 'board' ? this._t('viewBoard') : this._t('viewTable')) + ' ▾';
+    const dropdown = document.getElementById('view-dropdown');
+    if (dropdown) {
+      dropdown.querySelectorAll('.view-opt').forEach(li => {
+        const v = (li as HTMLElement).dataset.view;
+        li.textContent = v === 'board' ? this._t('viewBoard') : this._t('viewTable');
+      });
+    }
+
+    // Re-render existing cards so OVERDUE / "Due:" text picks up the new language
+    Object.keys(this._cards).forEach(id => this._rebuildCard(id));
+    if (this._currentView === 'table') this._refreshTable();
+  },
 
   // ── Sortable ───────────────────────────────────────────────────────────────
 
@@ -214,37 +302,41 @@ const kanban = {
     const t = document.createElement('div');
     t.className = 'card-title';
     t.textContent = card.title;
-    if (card.textColor) t.style.color = card.textColor;
+    const effTextColor = card.textColor || card.textColorAuto;
+    if (effTextColor) t.style.color = effTextColor;
     content.appendChild(t);
 
     if (card.body) {
       const b = document.createElement('div');
       b.className = 'card-body';
       b.textContent = card.body;
-      if (card.textColor) b.style.color = card.textColor;
+      if (effTextColor) b.style.color = effTextColor;
       content.appendChild(b);
     }
 
     if (card.overdue) {
       const ov = document.createElement('div');
       ov.className = 'card-overdue';
-      ov.textContent = 'OVERDUE';
+      ov.textContent = this._t('overdue');
       content.appendChild(ov);
     }
 
-    if (card.assignee || card.dueDate) {
+    // Hide the assignee label while filtered to that single assignee — redundant
+    // since every visible card already belongs to them; reappears when cleared.
+    const showAssignee = !!card.assignee && (!this._assigneeFilter || this._assigneeFilter !== card.assignee);
+    if (showAssignee || card.dueDate) {
       const meta = document.createElement('div');
       meta.className = 'card-meta';
-      if (card.assignee) {
+      if (showAssignee) {
         const a = document.createElement('span');
         a.className = 'card-assignee';
-        a.textContent = card.assignee;
+        a.textContent = card.assignee!;
         meta.appendChild(a);
       }
       if (card.dueDate) {
         const d = document.createElement('span');
         d.className = 'card-due';
-        d.textContent = 'Due: ' + card.dueDate;
+        d.textContent = this._t('dueLabelPrefix') + card.dueDate;
         meta.appendChild(d);
       }
       content.appendChild(meta);
@@ -526,7 +618,10 @@ const kanban = {
     col.appendChild(cardList);
     document.getElementById('board')!.appendChild(col);
 
-    const entry: Column = { id, el: col, header, titleEl, count, cardList, sortable: null, cardCount: 0 };
+    const entry: Column = {
+      id, el: col, header, titleEl, count, cardList, sortable: null, cardCount: 0,
+      visible: true, headerTextColorSet: false
+    };
     this._columns[id] = entry;
     this._initSortable(entry);
   },
@@ -551,12 +646,18 @@ const kanban = {
 
   setColumnHeaderColor(id: string, hex: string): void {
     const col = this._columns[id];
-    if (col) col.header.style.backgroundColor = hex;
+    if (!col) return;
+    col.header.style.backgroundColor = hex;
+    if (!col.headerTextColorSet && hex) {
+      const auto = this._contrastColor(hex);
+      col.titleEl.style.color = auto;
+      col.count.style.color = auto;
+    }
   },
 
   setColumnHeaderTextColor(id: string, hex: string): void {
     const col = this._columns[id];
-    if (col) { col.titleEl.style.color = hex; col.count.style.color = hex; }
+    if (col) { col.titleEl.style.color = hex; col.count.style.color = hex; col.headerTextColorSet = true; }
   },
 
   setDarkMode(enabled: boolean): void {
@@ -574,6 +675,7 @@ const kanban = {
     Object.values(this._columns).forEach(col => {
       col.titleEl.style.color = hex;
       col.count.style.color   = hex;
+      col.headerTextColorSet  = true;
     });
   },
 
@@ -588,9 +690,9 @@ const kanban = {
     if (this._cards[cardId] || !this._columns[columnId]) return;
     const card: Card = {
       id: cardId, columnId, title, body: body || '',
-      bgColor: null, textColor: null, borderColor: null,
+      bgColor: null, textColor: null, textColorAuto: null, borderColor: null,
       tag: null, tagColor: null,
-      assignee: null, dueDate: null,
+      assignee: null, dueDate: null, dueDateSort: null, priority: null,
       progress: -1, overdue: false,
       statusColor: null, statusLabel: null,
       radioValues: {},
@@ -602,6 +704,7 @@ const kanban = {
     this._columns[columnId].cardCount = (this._columns[columnId].cardCount || 0) + 1;
     this._columns[columnId].cardList.appendChild(card.el);
     this._refreshCount(columnId);
+    this._maybeResortColumn(columnId);
   },
 
   removeCard(cardId: string): void {
@@ -639,7 +742,9 @@ const kanban = {
 
   setCardBackgroundColor(cardId: string, hex: string): void {
     const card = this._cards[cardId]; if (!card) return;
-    card.bgColor = hex; this._rebuildCard(cardId);
+    card.bgColor = hex;
+    if (!card.textColor && hex) card.textColorAuto = this._contrastColor(hex);
+    this._rebuildCard(cardId);
   },
 
   setCardTextColor(cardId: string, hex: string): void {
@@ -675,7 +780,21 @@ const kanban = {
 
   setCardDueDate(cardId: string, dueDate: string): void {
     const card = this._cards[cardId]; if (!card) return;
-    card.dueDate = dueDate || null; this._rebuildCard(cardId);
+    card.dueDate = dueDate || null;
+    card.dueDateSort = this._computeDueDateSort(dueDate);
+    this._rebuildCard(cardId);
+    this._maybeResortColumn(card.columnId);
+  },
+
+  // Normalizes DD/MM/YYYY or DD/MM/YY into a sortable YYYYMMDD string.
+  // Falls back to the raw string if unparseable (sorts last/lexically, same as table view).
+  _computeDueDateSort(d: string): string | null {
+    if (!d) return null;
+    const m4 = d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m4) return `${m4[3]}${m4[2]}${m4[1]}`;
+    const m2 = d.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+    if (m2) return `20${m2[3]}${m2[2]}${m2[1]}`;
+    return d;
   },
 
   setCardProgress(cardId: string, progress: number): void {
@@ -739,6 +858,52 @@ const kanban = {
     this._applyFilters();
   },
 
+  setColumnVisible(columnId: string, visible: boolean): void {
+    const col = this._columns[columnId];
+    if (!col) return;
+    col.visible = visible;
+    col.el.style.display = visible ? '' : 'none';
+  },
+
+  setCardPriority(cardId: string, priority: number): void {
+    const card = this._cards[cardId]; if (!card) return;
+    card.priority = (priority >= 0) ? priority : null;
+    this._maybeResortColumn(card.columnId);
+  },
+
+  setColumnSortMode(columnId: string, mode: 'none' | 'priority' | 'date'): void {
+    this._columnSortModes[columnId] = mode;
+    if (mode !== 'none') this._resortColumn(columnId);
+  },
+
+  _maybeResortColumn(columnId: string): void {
+    const mode = this._columnSortModes[columnId];
+    if (mode && mode !== 'none') this._resortColumn(columnId);
+  },
+
+  // One-time DOM reorder — does not touch SortableJS config/state, so free
+  // drag continues to work immediately after this runs (onEnd is untouched).
+  // Triggered by SetColumnSortMode, card add, and priority/due-date changes —
+  // never by drag-drop, so manual reordering always wins until the next trigger.
+  _resortColumn(columnId: string): void {
+    const col = this._columns[columnId];
+    if (!col) return;
+    const mode = this._columnSortModes[columnId];
+    const cardEls = Array.from(col.cardList.children) as HTMLElement[];
+    const keyed = cardEls.map(el => {
+      const card = this._cards[el.dataset.cardId!];
+      let key: number;
+      if (mode === 'priority') {
+        key = (card && card.priority != null) ? card.priority : Number.MAX_SAFE_INTEGER;
+      } else {
+        key = (card && card.dueDateSort) ? (Number(card.dueDateSort) || Number.MAX_SAFE_INTEGER) : Number.MAX_SAFE_INTEGER;
+      }
+      return { el, key };
+    });
+    keyed.sort((a, b) => a.key - b.key);
+    keyed.forEach(({ el }) => col.cardList.appendChild(el));
+  },
+
   // ── Board Methods ──────────────────────────────────────────────────────────
 
   setReadOnly(readOnly: boolean): void {
@@ -768,7 +933,7 @@ const kanban = {
     const filterBtn = document.createElement('button');
     filterBtn.className = 'view-btn filter-btn';
     filterBtn.id = 'filter-btn';
-    filterBtn.textContent = '\u22c2 Filter';
+    filterBtn.textContent = this._t('filterButton');
 
     const filterPanel = document.createElement('div');
     filterPanel.className = 'filter-panel';
@@ -800,14 +965,14 @@ const kanban = {
     const btn = document.createElement('button');
     btn.className = 'view-btn';
     btn.id = 'view-btn';
-    btn.textContent = this._currentView === 'board' ? '\u229e Board \u25be' : '\u2630 Table \u25be';
+    btn.textContent = (this._currentView === 'board' ? this._t('viewBoard') : this._t('viewTable')) + ' \u25be';
 
     const dropdown = document.createElement('ul');
     dropdown.className = 'view-dropdown';
     dropdown.id = 'view-dropdown';
 
     (['board', 'table'] as const).forEach(v => {
-      const label = v === 'board' ? '\u229e Board' : '\u2630 Table';
+      const label = v === 'board' ? this._t('viewBoard') : this._t('viewTable');
       const li = document.createElement('li');
       li.className = 'view-opt' + (this._currentView === v ? ' view-opt--active' : '');
       li.textContent = label;
@@ -844,7 +1009,7 @@ const kanban = {
     this._currentView = view;
     const btn      = document.getElementById('view-btn');
     const dropdown = document.getElementById('view-dropdown');
-    if (btn) btn.textContent = view === 'board' ? '\u229e Board \u25be' : '\u2630 Table \u25be';
+    if (btn) btn.textContent = (view === 'board' ? this._t('viewBoard') : this._t('viewTable')) + ' \u25be';
     if (dropdown) {
       dropdown.classList.remove('view-dropdown--open');
       dropdown.querySelectorAll('.view-opt').forEach(li => {
@@ -1031,6 +1196,14 @@ const kanban = {
     this._applyFilters();
   },
 
+  // '' shows every assignee; a specific name shows only that assignee's cards
+  // and hides the (now redundant) assignee label on each visible card.
+  setAssigneeFilter(assignee: string): void {
+    this._assigneeFilter = assignee || '';
+    Object.keys(this._cards).forEach(id => this._rebuildCard(id));
+    this._applyFilters();
+  },
+
   _buildFilterPanel(panel: HTMLElement): void {
     panel.innerHTML = '';
     const header = document.createElement('div');
@@ -1038,12 +1211,12 @@ const kanban = {
 
     const heading = document.createElement('span');
     heading.className = 'fp-heading';
-    heading.textContent = 'Filter';
+    heading.textContent = this._t('filterHeading');
     header.appendChild(heading);
 
     const clearBtn = document.createElement('button');
     clearBtn.className = 'fp-clear';
-    clearBtn.textContent = 'Clear all';
+    clearBtn.textContent = this._t('clearAll');
     clearBtn.addEventListener('mousedown', (e: MouseEvent) => {
       e.preventDefault();
       this._activeFilters = {};
@@ -1061,7 +1234,7 @@ const kanban = {
       const si = document.createElement('input');
       si.type = 'text';
       si.className = 'fp-search';
-      si.placeholder = 'Search cards\u2026';
+      si.placeholder = this._t('searchPlaceholder');
       si.value = this._searchText;
       si.addEventListener('input', (e: Event) => {
         e.stopPropagation();
@@ -1141,11 +1314,12 @@ const kanban = {
     if (!btn) return;
     const count = Object.keys(this._activeFilters).length +
       (this._searchEnabled && this._searchText.trim() ? 1 : 0);
-    btn.textContent = count > 0 ? `\u22c2 Filter (${count})` : '\u22c2 Filter';
+    btn.textContent = count > 0 ? `${this._t('filterButton')} (${count})` : this._t('filterButton');
     btn.classList.toggle('filter-btn--active', count > 0);
   },
 
   _cardPassesFilter(card: Card): boolean {
+    if (this._assigneeFilter && card.assignee !== this._assigneeFilter) return false;
     for (const [groupId, activeSet] of Object.entries(this._activeFilters)) {
       if (!activeSet.size) continue;
       const val = this._cardFilters[card.id]?.[groupId];
@@ -1194,6 +1368,23 @@ const kanban = {
   setColumnWidth(px: number): void {
     this._colWidth = px;
     Object.values(this._columns).forEach(col => col.el.style.width = px + 'px');
+  },
+
+  setFontSize(px: number): void {
+    const size = (typeof px === 'number' && px > 0) ? px : 14;
+    document.documentElement.style.setProperty('--kb-font-size', size + 'px');
+  },
+
+  // Pure luminance-based black/white contrast pick — theme-agnostic by design,
+  // used only as a fallback when no explicit text color was set.
+  _contrastColor(bgHex: string): '#000000' | '#ffffff' {
+    const hex = bgHex.replace('#', '');
+    if (hex.length !== 6) return '#000000';
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.55 ? '#000000' : '#ffffff';
   }
 };
 
@@ -1218,6 +1409,7 @@ document.addEventListener('contextmenu', () => {
 
 window.kanban = kanban;
 kanban._buildToolbar();
+kanban._applyI18n();
 
 function sendReady(attempts: number): void {
   if (attempts > 100) return;
