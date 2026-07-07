@@ -235,6 +235,7 @@
       <li><a class="toc-link" href="#menu">Context menu</a></li>
       <li><a class="toc-link" href="#filters">Filters</a></li>
       <li><a class="toc-link" href="#status">Status system</a></li>
+      <li><a class="toc-link" href="#compact">Compact view</a></li>
     </ul>
     <div class="toc-section-title">Events</div>
     <ul>
@@ -535,6 +536,29 @@ Kanban.SetAssigneeFilter('')</code></pre>
       </div>
     </section>
 
+    <!-- ══════════════════ COMPACT VIEW ══════════════════ -->
+    <section id="compact">
+      <h2>Compact view <span class="badge">New</span></h2>
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>SetCompactView(enabled)</code></td><td>Enables (1) or disables (0) compact card rendering</td></tr>
+        </tbody>
+      </table>
+      <p>
+        In compact mode, every card shows <strong>only the title</strong> and the status/priority colour
+        bar on the left (from <code>SetCardStatus</code>/<code>SetCardStatusBar</code>) — the tag, body,
+        overdue badge, assignee/due-date line, and progress bar are all hidden. No data is lost: turning
+        it off restores the full card exactly as it was.
+      </p>
+      <div class="callout">
+        Ideal for scanning many tasks at a glance while keeping the priority/status colour signal without
+        the rest of the detail. Included in <code>GetBoardState()</code>/<code>SetBoardState()</code>.
+      </div>
+      <pre><code>Kanban.SetCompactView(1)   ! titles + colour bar only
+Kanban.SetCompactView(0)   ! back to the full card detail</code></pre>
+    </section>
+
     <!-- ══════════════════ EVENTS ══════════════════ -->
     <section id="events">
       <h2>Event reference</h2>
@@ -640,6 +664,10 @@ Kanban.OnCardMoved  PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColu
         <div>
           <h3>Filter by user/assignee <span class="badge">New</span></h3>
           <p><code>SetAssigneeFilter(assignee)</code> — one-call "My Tasks" mode; hides the name on the card while the filter is active.</p>
+        </div>
+        <div>
+          <h3>Compact view <span class="badge">New</span></h3>
+          <p><code>SetCompactView(enabled)</code> — title + status colour bar only; no data lost when turned off.</p>
         </div>
         <div>
           <h3>Planned for a later stage</h3>

@@ -28,7 +28,8 @@ A generic, database-agnostic Kanban board control for Clarion for Windows applic
 - English/Spanish UI language toggle (control chrome only, not card content)
 - Auto-sort a column by card priority or due date, with free drag-reordering afterward
 - Filter the board down to a single assignee's cards (or show every assignee) with one call
-- Save/restore board-level settings (dark mode, read-only, column width, font size, language, column visibility, column sort modes, assignee filter) as a JSON string
+- Compact card view — title and status colour bar only, for scanning many tasks at once
+- Save/restore board-level settings (dark mode, read-only, column width, font size, language, column visibility, column sort modes, assignee filter, compact view) as a JSON string
 
 ## Installation
 
@@ -97,8 +98,9 @@ Copy the contents of the `Clarion/accessory/` folder to your Clarion accessory f
 | `SetReadOnly(readOnly)` | Disables drag-and-drop when 1 |
 | `SetLanguage(lang)` | Sets UI chrome language: `"en"` or `"es"` (fallback `"en"`); does not translate card content |
 | `SetFontSize(px)` | Sets the global base font size in pixels (default 14); other text scales proportionally |
-| `GetBoardState()` | Returns a JSON string with all board-level settings (dark mode, read-only, column width, font size, language, board title/colours, column visibility, column sort modes, assignee filter) |
+| `GetBoardState()` | Returns a JSON string with all board-level settings (dark mode, read-only, column width, font size, language, board title/colours, column visibility, column sort modes, assignee filter, compact view) |
 | `SetBoardState(json)` | Restores board-level settings from a `GetBoardState()` JSON string; safe to call before or after `PageReady` |
+| `SetCompactView(enabled)` | Enables (1) or disables (0) compact cards: only the title and the status/priority colour bar remain visible; tag, body, overdue badge, assignee/due-date line, and progress bar are hidden without losing the underlying data |
 
 **Context Menu**
 

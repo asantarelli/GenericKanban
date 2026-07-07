@@ -14,6 +14,7 @@ All notable changes to GenericKanban will be documented here.
 - **`GetBoardState()`** — returns a JSON string with all board-level settings (dark mode, read-only, column width, font size, language, board title/colours, per-column visibility, per-column sort mode, assignee filter)
 - **`SetBoardState(pJson)`** — restores board-level settings from a `GetBoardState()` JSON string; safe to call before or after `PageReady`
 - **`SetAssigneeFilter(pAssignee)`** — shows only cards whose assignee (`SetCardAssignee`) matches exactly; pass an empty string to show every assignee again. Composes with the generic filter panel and text search. While a specific assignee is active, that assignee's name is hidden on the card (redundant — every visible card already belongs to them) and reappears automatically when the filter is cleared
+- **`SetCompactView(pEnabled)`** — compact card rendering: only the title and the status/priority colour bar remain visible; tag, body, overdue badge, assignee/due-date line, and progress bar are hidden without losing any card data. Included in `GetBoardState()`/`SetBoardState()`
 
 ### Changed
 - `SetDarkMode`, `SetReadOnly`, `SetColumnWidth`, `SetBoardTitle` now also store their value in C# shadow state so `GetBoardState()` can read them back

@@ -56,6 +56,7 @@
     _columnSortModes: {},
     _assigneeFilter: "",
     // '' = show all assignees
+    _compactView: false,
     // Context menu state
     _menuDef: [],
     _menuMap: {},
@@ -214,7 +215,8 @@
       el.appendChild(bar);
       const content = document.createElement("div");
       content.className = "card-content";
-      if (card.tag) {
+      if (this._compactView) el.classList.add("card--compact");
+      if (!this._compactView && card.tag) {
         const tag = document.createElement("div");
         tag.className = "card-tag";
         tag.textContent = card.tag;
@@ -227,46 +229,48 @@
       const effTextColor = card.textColor || card.textColorAuto;
       if (effTextColor) t.style.color = effTextColor;
       content.appendChild(t);
-      if (card.body) {
-        const b = document.createElement("div");
-        b.className = "card-body";
-        b.textContent = card.body;
-        if (effTextColor) b.style.color = effTextColor;
-        content.appendChild(b);
-      }
-      if (card.overdue) {
-        const ov = document.createElement("div");
-        ov.className = "card-overdue";
-        ov.textContent = this._t("overdue");
-        content.appendChild(ov);
-      }
-      const showAssignee = !!card.assignee && (!this._assigneeFilter || this._assigneeFilter !== card.assignee);
-      if (showAssignee || card.dueDate) {
-        const meta = document.createElement("div");
-        meta.className = "card-meta";
-        if (showAssignee) {
-          const a = document.createElement("span");
-          a.className = "card-assignee";
-          a.textContent = card.assignee;
-          meta.appendChild(a);
+      if (!this._compactView) {
+        if (card.body) {
+          const b = document.createElement("div");
+          b.className = "card-body";
+          b.textContent = card.body;
+          if (effTextColor) b.style.color = effTextColor;
+          content.appendChild(b);
         }
-        if (card.dueDate) {
-          const d = document.createElement("span");
-          d.className = "card-due";
-          d.textContent = this._t("dueLabelPrefix") + card.dueDate;
-          meta.appendChild(d);
+        if (card.overdue) {
+          const ov = document.createElement("div");
+          ov.className = "card-overdue";
+          ov.textContent = this._t("overdue");
+          content.appendChild(ov);
         }
-        content.appendChild(meta);
-      }
-      if (card.progress >= 0) {
-        const wrap = document.createElement("div");
-        wrap.className = "card-progress-bar";
-        const fill = document.createElement("div");
-        fill.className = "card-progress-fill";
-        fill.style.width = Math.min(100, Math.max(0, card.progress)) + "%";
-        if (card.tagColor) fill.style.backgroundColor = card.tagColor;
-        wrap.appendChild(fill);
-        content.appendChild(wrap);
+        const showAssignee = !!card.assignee && (!this._assigneeFilter || this._assigneeFilter !== card.assignee);
+        if (showAssignee || card.dueDate) {
+          const meta = document.createElement("div");
+          meta.className = "card-meta";
+          if (showAssignee) {
+            const a = document.createElement("span");
+            a.className = "card-assignee";
+            a.textContent = card.assignee;
+            meta.appendChild(a);
+          }
+          if (card.dueDate) {
+            const d = document.createElement("span");
+            d.className = "card-due";
+            d.textContent = this._t("dueLabelPrefix") + card.dueDate;
+            meta.appendChild(d);
+          }
+          content.appendChild(meta);
+        }
+        if (card.progress >= 0) {
+          const wrap = document.createElement("div");
+          wrap.className = "card-progress-bar";
+          const fill = document.createElement("div");
+          fill.className = "card-progress-fill";
+          fill.style.width = Math.min(100, Math.max(0, card.progress)) + "%";
+          if (card.tagColor) fill.style.backgroundColor = card.tagColor;
+          wrap.appendChild(fill);
+          content.appendChild(wrap);
+        }
       }
       el.appendChild(content);
       return el;
@@ -1068,6 +1072,13 @@
       this._assigneeFilter = assignee || "";
       Object.keys(this._cards).forEach((id) => this._rebuildCard(id));
       this._applyFilters();
+    },
+    // Compact view: only the card title and the status/priority colour bar remain
+    // visible; tag, body, overdue badge, assignee/due-date line, and progress bar
+    // are hidden. No data is lost — turning it off restores the full card.
+    setCompactView(enabled) {
+      this._compactView = !!enabled;
+      Object.keys(this._cards).forEach((id) => this._rebuildCard(id));
     },
     _buildFilterPanel(panel) {
       panel.innerHTML = "";

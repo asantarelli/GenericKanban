@@ -235,6 +235,7 @@
       <li><a class="toc-link" href="#menu">Menú contextual</a></li>
       <li><a class="toc-link" href="#filtros">Filtros</a></li>
       <li><a class="toc-link" href="#estados">Sistema de estados</a></li>
+      <li><a class="toc-link" href="#compacta">Vista compacta</a></li>
     </ul>
     <div class="toc-section-title">Eventos</div>
     <ul>
@@ -535,6 +536,30 @@ Kanban.SetAssigneeFilter('')</code></pre>
       </div>
     </section>
 
+    <!-- ══════════════════ VISTA COMPACTA ══════════════════ -->
+    <section id="compacta">
+      <h2>Vista compacta <span class="badge">Nuevo</span></h2>
+      <table>
+        <thead><tr><th>Método</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>SetCompactView(enabled)</code></td><td>Activa (1) o desactiva (0) el renderizado compacto de tarjetas</td></tr>
+        </tbody>
+      </table>
+      <p>
+        En modo compacto, cada tarjeta muestra <strong>solo el título</strong> y la barra de color de
+        estado/prioridad a la izquierda (la de <code>SetCardStatus</code>/<code>SetCardStatusBar</code>) —
+        se ocultan la etiqueta, el cuerpo, el badge de vencida, la línea de responsable/fecha y la barra
+        de progreso. No se pierde ningún dato: al desactivarla, la tarjeta vuelve a mostrar todo tal cual
+        estaba.
+      </p>
+      <div class="callout">
+        Es ideal para escanear muchas tareas de un vistazo, manteniendo la señal de color de prioridad/estado
+        sin el resto del detalle. Se incluye en <code>GetBoardState()</code>/<code>SetBoardState()</code>.
+      </div>
+      <pre><code>Kanban.SetCompactView(1)   ! solo títulos + barra de color
+Kanban.SetCompactView(0)   ! vuelve a mostrar todo el detalle de la tarjeta</code></pre>
+    </section>
+
     <!-- ══════════════════ EVENTOS ══════════════════ -->
     <section id="eventos">
       <h2>Referencia de eventos</h2>
@@ -640,6 +665,10 @@ Kanban.OnCardMoved  PROCEDURE(STRING pCardId, STRING pFromColumn, STRING pToColu
         <div>
           <h3>Filtro por usuario/responsable <span class="badge">Nuevo</span></h3>
           <p><code>SetAssigneeFilter(assignee)</code> — modo "Mis tareas" de un solo llamado; oculta el nombre en la tarjeta mientras el filtro está activo.</p>
+        </div>
+        <div>
+          <h3>Vista compacta <span class="badge">Nuevo</span></h3>
+          <p><code>SetCompactView(enabled)</code> — solo título + barra de color de estado; sin pérdida de datos al desactivarla.</p>
         </div>
         <div>
           <h3>Pendiente para 2ª etapa</h3>

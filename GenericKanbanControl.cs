@@ -81,6 +81,7 @@ namespace GenericKanban
         private string _language = "en";
         private int _fontSize = 14;
         private string _assigneeFilter = "";
+        private bool _compactView = false;
 
         // Shadow state: columnId → visible (absent = visible)
         private readonly ConcurrentDictionary<string, bool> _columnVisibility =
@@ -717,6 +718,7 @@ namespace GenericKanban
                 ["columnVisibility"] = JObject.FromObject(_columnVisibility),
                 ["columnSortModes"] = JObject.FromObject(_columnSortModes),
                 ["assigneeFilter"] = _assigneeFilter,
+                ["compactView"] = _compactView,
             };
             return state.ToString(Newtonsoft.Json.Formatting.None);
         }
@@ -750,12 +752,19 @@ namespace GenericKanban
                     SetColumnSortMode(kv.Key, (string)kv.Value);
 
             if (state["assigneeFilter"] != null) SetAssigneeFilter((string)state["assigneeFilter"]);
+            if (state["compactView"] != null) SetCompactView((bool)state["compactView"] ? 1 : 0);
         }
 
         public void SetAssigneeFilter(string assignee)
         {
             _assigneeFilter = assignee ?? "";
             Exec($"kanban.setAssigneeFilter({J(_assigneeFilter)})");
+        }
+
+        public void SetCompactView(int enabled)
+        {
+            _compactView = enabled != 0;
+            Exec($"kanban.setCompactView({(enabled != 0 ? "true" : "false")})");
         }
 
         // ----------------------------------------------------------------

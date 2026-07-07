@@ -336,5 +336,16 @@ namespace GenericKanban
         /// </summary>
         [DispId(54)]
         void SetAssigneeFilter(string assignee);
+
+        // ── Compact View ───────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Enables (1) or disables (0) compact card rendering: only the card title
+        /// and the status/priority colour bar are shown; tag, body, overdue badge,
+        /// assignee/due-date line, and progress bar are hidden. Card data is not
+        /// lost — disabling compact view restores the full card immediately.
+        /// </summary>
+        [DispId(55)]
+        void SetCompactView(int enabled);
     }
 }

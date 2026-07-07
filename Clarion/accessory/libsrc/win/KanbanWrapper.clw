@@ -341,6 +341,10 @@ KanbanWrapperClass.SetAssigneeFilter        PROCEDURE(STRING pAssignee)
   CODE
   SELF.Ctrl{'SetAssigneeFilter(' & SELF.Q_(pAssignee) & ')'}
 
+KanbanWrapperClass.SetCompactView           PROCEDURE(LONG pEnabled)
+  CODE
+  SELF.Ctrl{'SetCompactView(' & pEnabled & ')'}
+
 ! ---------------------------------------------------------------------------
 ! Context menu
 ! ---------------------------------------------------------------------------

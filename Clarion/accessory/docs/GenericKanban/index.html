@@ -225,6 +225,7 @@
   <a href="#ex-clicks">Click Events</a>
   <a href="#ex-movecard">Move Card &amp; Visibility</a>
   <a href="#ex-sort">Column Auto-Sort</a>
+  <a href="#ex-compact">Compact View</a>
   <a href="#ex-language">Language &amp; Font Size</a>
   <a href="#ex-persistence">Save / Restore State</a>
 </nav>
@@ -574,6 +575,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetFontSize(pPx)</td><td class="desc"><strong>New in v1.3.</strong> Global base font size in pixels (default 14). All other text scales proportionally.</td></tr>
         <tr><td class="sig">GetBoardState() → STRING</td><td class="desc"><strong>New in v1.3.</strong> Returns a JSON string with dark mode, read-only, column width, font size, language, board title/colours, per-column visibility and per-column sort mode. Does not include columns or cards.</td></tr>
         <tr><td class="sig">SetBoardState(pJson)</td><td class="desc"><strong>New in v1.3.</strong> Restores settings from a <code>GetBoardState()</code> string. Safe to call before or after <code>PageReady</code> — calls are queued internally either way.</td></tr>
+        <tr><td class="sig">SetCompactView(pEnabled)</td><td class="desc"><strong>New in v1.3.</strong> Pass <code>1</code> to render every card with only its title and the status/priority colour bar — tag, body, overdue badge, assignee/due-date line, and progress bar are hidden. Pass <code>0</code> to restore full cards. No card data is lost either way, and the setting is included in <code>GetBoardState()</code>/<code>SetBoardState()</code>.</td></tr>
       </tbody>
     </table>
   </section>
@@ -1072,6 +1074,7 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
         <tr><td class="sig">GetBoardState() → STRING</td><td class="desc">Serializes board-level settings to JSON.</td></tr>
         <tr><td class="sig">SetBoardState(pJson)</td><td class="desc">Restores board-level settings from a JSON string.</td></tr>
         <tr><td class="sig">SetAssigneeFilter(pAssignee)</td><td class="desc">Filters the board to a single assignee's cards, or clears it with <code>''</code> to show everyone. Hides the assignee label on the card while a specific assignee is active.</td></tr>
+        <tr><td class="sig">SetCompactView(pEnabled)</td><td class="desc"><strong>New in v1.3.</strong> Pass <code>1</code> to render every card with only its title and the status/priority colour bar (tag, body, overdue badge, assignee/due-date line, and progress bar are hidden). Pass <code>0</code> to restore full cards — no data is lost either way.</td></tr>
       </tbody>
     </table>
     <div class="callout callout-tip">
@@ -1103,6 +1106,21 @@ MyKanban.SetColumnSortMode('testing', 'date')
 
 ! Turn auto-sort off again (order stays as-is, just no longer auto-reapplied)
 MyKanban.SetColumnSortMode('todo', 'none')</code></pre>
+  </section>
+
+  <section id="ex-compact">
+    <h2>Example — Compact View</h2>
+    <p>Toggle between full detail and a dense, title-only view — handy for a "Compact" button when the user wants to scan many tasks at once. The status/priority colour bar stays visible either way, and no card data is lost when switching back.</p>
+    <pre><code class="language-clarion">! ── "Compact" toggle button ─────────────────────────────────────
+MyKanban.CompactToggle    PROCEDURE()
+  CODE
+  CompactOn = 1 - CompactOn
+  MyKanban.SetCompactView(CompactOn)
+  IF CompactOn
+    ?StatusLabel{PROP:Text} = 'Compact view: titles only'
+  ELSE
+    ?StatusLabel{PROP:Text} = 'Compact view off: full card detail'
+  END</code></pre>
   </section>
 
   <section id="ex-language">

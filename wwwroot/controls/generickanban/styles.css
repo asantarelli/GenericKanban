@@ -330,6 +330,18 @@ body.dark #board::-webkit-scrollbar-thumb { background: rgba(255,255,255,.3); }
   min-width: 0;
 }
 
+/* Compact view — only title + status bar remain, so tighten the card's padding
+   and margin to actually gain density instead of leaving empty space. */
+.card--compact {
+  margin-bottom: 4px;
+}
+.card--compact .card-content {
+  padding: 6px 11px;
+}
+.card--compact .card-title {
+  line-height: 1.3;
+}
+
 .card:hover {
   box-shadow: 0 3px 9px rgba(9,30,66,.2), 0 0 0 1px rgba(9,30,66,.1);
 }

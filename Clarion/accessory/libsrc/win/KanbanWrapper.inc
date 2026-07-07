@@ -114,6 +114,7 @@ SetFontSize               PROCEDURE(LONG pPx),VIRTUAL
 GetBoardState             PROCEDURE(), STRING,VIRTUAL
 SetBoardState             PROCEDURE(STRING pJson),VIRTUAL
 SetAssigneeFilter         PROCEDURE(STRING pAssignee),VIRTUAL
+SetCompactView            PROCEDURE(LONG pEnabled),VIRTUAL
 
 ! -- Context menu --
 ClearContextMenu          PROCEDURE,VIRTUAL
