@@ -80,7 +80,7 @@ Copy the contents of the `Clarion/accessory/` folder to your Clarion accessory f
 | `SetCardAssignee(cardId, assignee)` | Sets assignee text on card |
 | `SetCardDueDate(cardId, dueDate)` | Sets due date text on card |
 | `SetCardProgress(cardId, percent)` | Sets progress bar (0–100, -1 to hide) |
-| `SetCardOverdue(cardId, overdue)` | Marks card as overdue (1) or clears (0); shows the OVERDUE badge and renders the card body in red |
+| `SetCardOverdue(cardId, overdue)` | Marks card as overdue (1) or clears (0); shows the OVERDUE badge and renders the card title in red |
 | `SetCardStatusBar(cardId, label, color)` | Sets coloured status bar on card left edge |
 | `SetCardStatus(cardId, optionId)` | Sets status (bar colour + filter + radio) in one call |
 | `SetCardPriority(cardId, priority)` | Sets a numeric priority (lower = higher priority); -1 clears it |

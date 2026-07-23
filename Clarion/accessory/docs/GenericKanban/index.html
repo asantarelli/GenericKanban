@@ -549,7 +549,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetCardAssignee(pCardId, pAssignee)</td><td class="desc">Sets the assignee name shown on the card.</td></tr>
         <tr><td class="sig">SetCardDueDate(pCardId, pDueDate)</td><td class="desc">Sets the due date string (any format, e.g. <code>'2025-12-31'</code>).</td></tr>
         <tr><td class="sig">SetCardProgress(pCardId, pProgress)</td><td class="desc">Sets a progress bar (0–100). Pass <code>-1</code> to hide the bar.</td></tr>
-        <tr><td class="sig">SetCardOverdue(pCardId, pOverdue)</td><td class="desc">Pass <code>1</code> to highlight the card as overdue: shows the OVERDUE badge and renders the body/description text in red. <strong>New in v1.3:</strong> the red body text.</td></tr>
+        <tr><td class="sig">SetCardOverdue(pCardId, pOverdue)</td><td class="desc">Pass <code>1</code> to highlight the card as overdue: shows the OVERDUE badge and renders the card title text in red. <strong>New in v1.3:</strong> the red title text.</td></tr>
         <tr><td class="sig">SetCardStatusBar(pCardId, pLabel, pColor)</td><td class="desc">Sets a coloured status bar at the bottom of the card. <code>pLabel</code> can be blank.</td></tr>
         <tr><td class="sig">SetCardPriority(pCardId, pPriority)</td><td class="desc"><strong>New in v1.3.</strong> Sets a numeric priority (lower = higher priority). Pass <code>-1</code> to clear it. Drives <code>SetColumnSortMode(pColumnId, 'priority')</code>.</td></tr>
       </tbody>

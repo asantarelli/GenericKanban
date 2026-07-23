@@ -306,7 +306,10 @@ const kanban = {
     t.className = 'card-title';
     t.textContent = card.title;
     const effTextColor = card.textColor || card.textColorAuto;
-    if (effTextColor) t.style.color = effTextColor;
+    // Overdue always wins — same red as the OVERDUE badge, regardless of any
+    // custom/auto text color, so the warning can't be missed.
+    if (card.overdue) t.style.color = '#e74c3c';
+    else if (effTextColor) t.style.color = effTextColor;
     content.appendChild(t);
 
     // Compact view: only the title and the status/priority colour bar are shown.
@@ -315,10 +318,7 @@ const kanban = {
         const b = document.createElement('div');
         b.className = 'card-body';
         b.textContent = card.body;
-        // Overdue always wins — same red as the OVERDUE badge, regardless of
-        // any custom/auto text color, so the warning can't be missed.
-        if (card.overdue) b.style.color = '#e74c3c';
-        else if (effTextColor) b.style.color = effTextColor;
+        if (effTextColor) b.style.color = effTextColor;
         content.appendChild(b);
       }
 

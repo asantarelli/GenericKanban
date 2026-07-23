@@ -227,15 +227,15 @@
       t.className = "card-title";
       t.textContent = card.title;
       const effTextColor = card.textColor || card.textColorAuto;
-      if (effTextColor) t.style.color = effTextColor;
+      if (card.overdue) t.style.color = "#e74c3c";
+      else if (effTextColor) t.style.color = effTextColor;
       content.appendChild(t);
       if (!this._compactView) {
         if (card.body) {
           const b = document.createElement("div");
           b.className = "card-body";
           b.textContent = card.body;
-          if (card.overdue) b.style.color = "#e74c3c";
-          else if (effTextColor) b.style.color = effTextColor;
+          if (effTextColor) b.style.color = effTextColor;
           content.appendChild(b);
         }
         if (card.overdue) {

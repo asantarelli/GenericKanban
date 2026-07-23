@@ -21,7 +21,7 @@ All notable changes to GenericKanban will be documented here.
 - `KanbanWrapper.clw`'s `Q_()` string-escaping buffer enlarged from `CSTRING(4002)` to `CSTRING(16002)` to accommodate larger JSON payloads (e.g. `SetBoardState` on boards with many columns)
 
 ### Fixed
-- Overdue cards (`SetCardOverdue`) now also render the card body/description text in red (matching the OVERDUE badge), instead of only showing the badge
+- Overdue cards (`SetCardOverdue`) now also render the card title text in red (matching the OVERDUE badge), instead of only showing the badge
 - `MoveCard(pCardId, pColumnId)` now re-applies the destination column's auto-sort mode (`SetColumnSortMode`) if one is active, so a programmatic move (e.g. a status change) slots the card into its correct priority/date position instead of always appending it at the end. Manual drag-and-drop is unaffected and remains freely reorderable
 
 ## [1.2.0] - 2026-04-08
