@@ -317,12 +317,22 @@ resources/wwwroot/           → accessory\resources\wwwroot\</code></pre>
         <li>A new card is added to the column (<code>AddCard</code>).</li>
         <li>A card's priority changes (<code>SetCardPriority</code>).</li>
         <li>A card's due date changes (<code>SetCardDueDate</code>).</li>
+        <li>A card is moved into the column programmatically (<code>MoveCard</code>) — the destination column is re-sorted.</li>
         <li><code>SetColumnSortMode</code> is called explicitly.</li>
       </ul>
       <div class="callout">
         After each auto-sort pass, the user can still freely drag cards within the column —
         manual dragging is <strong>never blocked</strong>. The next event from the list above
-        re-applies the automatic order.
+        re-applies the automatic order. Note: the user's own mouse drag does not trigger a
+        re-sort either — by design, so it never fights the manual reorder the user just made.
+      </div>
+      <div class="callout warn">
+        <strong>Watch out for the Status system.</strong> <code>SetCardStatus</code>/<code>AddStatusOption</code>
+        (colour bar + context-menu radio + filter) is a <em>separate</em> field from the numeric
+        <code>Priority</code> that drives auto-sort. If your application only changes a card's
+        priority through the Status system (e.g. from the context menu), auto-sort
+        <strong>won't know about it</strong> — you also need to call <code>SetCardPriority</code>
+        with the matching numeric value for the column to re-sort.
       </div>
       <pre><code>Kanban.SetCardPriority('c1', 1)      ! lower number = higher priority
 Kanban.SetCardPriority('c2', 3)
@@ -344,7 +354,7 @@ Kanban.SetColumnSortMode('closed', 'none')    ! back to free order (no auto-sort
           <tr><td><code>ClearColumnCards(columnId)</code></td><td>Removes all cards from a column</td></tr>
           <tr><td><code>GetCardColumn(cardId)</code></td><td>Returns the column ID containing the card</td></tr>
           <tr><td><code>MoveCardToTop(cardId)</code></td><td>Moves a card to the top of its column</td></tr>
-          <tr><td><code>MoveCard(cardId, columnId)</code></td><td>Moves a card to a different column (fires <code>CardMoved</code>)</td></tr>
+          <tr><td><code>MoveCard(cardId, columnId)</code></td><td>Moves a card to a different column (fires <code>CardMoved</code>); re-sorts the destination column if an auto-sort mode is active</td></tr>
           <tr><td><code>SetCardVisible(cardId, visible)</code></td><td>Shows (1) or hides (0) a card without removing it</td></tr>
           <tr><td><code>SetCardTitle(cardId, title)</code></td><td>Updates the card title</td></tr>
           <tr><td><code>SetCardBody(cardId, body)</code></td><td>Updates the card body text</td></tr>
@@ -355,7 +365,7 @@ Kanban.SetColumnSortMode('closed', 'none')    ! back to free order (no auto-sort
           <tr><td><code>SetCardAssignee(cardId, assignee)</code></td><td>Assignee name</td></tr>
           <tr><td><code>SetCardDueDate(cardId, dueDate)</code></td><td>Due date (text)</td></tr>
           <tr><td><code>SetCardProgress(cardId, percent)</code></td><td>Progress bar (0–100, -1 to hide it)</td></tr>
-          <tr><td><code>SetCardOverdue(cardId, overdue)</code></td><td>Marks (1) or clears (0) the overdue badge</td></tr>
+          <tr><td><code>SetCardOverdue(cardId, overdue)</code></td><td>Marks (1) or clears (0) the overdue badge — also renders the body/description text in red while marked</td></tr>
           <tr><td><code>SetCardStatusBar(cardId, label, color)</code></td><td>Coloured status bar on the left edge</td></tr>
           <tr><td><code>SetCardStatus(cardId, optionId)</code></td><td>Sets status (bar + filter + radio) in one call</td></tr>
           <tr><td><code>SetCardPriority(cardId, priority)</code> <span class="badge">New</span></td><td>Numeric priority (lower = higher priority); -1 clears it</td></tr>

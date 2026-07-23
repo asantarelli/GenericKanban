@@ -513,7 +513,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetColumnWipLimit(pColumnId, pMaxCards)</td><td class="desc"><strong>New.</strong> Sets a WIP (Work In Progress) limit. The count badge shows <code>count/limit</code> and turns <strong style="color:#e67e22">amber</strong> when at the limit, <strong style="color:#e74c3c">red</strong> when exceeded. Pass <code>0</code> to remove the limit.</td></tr>
         <tr><td class="sig">GetColumnCardCount(pColumnId)</td><td class="desc"><strong>New.</strong> Returns the current number of cards in a column as a <code>LONG</code>. Computed from C# shadow state — no round-trip to JS.</td></tr>
         <tr><td class="sig">SetColumnVisible(pColumnId, pVisible)</td><td class="desc"><strong>New in v1.3.</strong> Shows (<code>1</code>) or hides (<code>0</code>) a column without removing it or its cards.</td></tr>
-        <tr><td class="sig">SetColumnSortMode(pColumnId, pMode)</td><td class="desc"><strong>New in v1.3.</strong> Auto-sorts a column by <code>'priority'</code> or <code>'date'</code> (or <code>'none'</code>). Re-applies whenever a card is added or its priority/due date changes; the user can still freely drag-reorder afterward. See <a href="#ex-sort">example</a>.</td></tr>
+        <tr><td class="sig">SetColumnSortMode(pColumnId, pMode)</td><td class="desc"><strong>New in v1.3.</strong> Auto-sorts a column by <code>'priority'</code> or <code>'date'</code> (or <code>'none'</code>). Re-applies whenever a card is added, moved into the column via <code>MoveCard</code>, or has its priority/due date changed; the user can still freely drag-reorder afterward. See <a href="#ex-sort">example</a>.</td></tr>
       </tbody>
     </table>
   </section>
@@ -531,7 +531,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">ClearColumnCards(pColumnId)</td><td class="desc">Removes all cards from a column (keeps the column).</td></tr>
         <tr><td class="sig">GetCardColumn(pCardId)</td><td class="desc">Returns the current column ID of a card. Useful after drag-and-drop to verify state.</td></tr>
         <tr><td class="sig">MoveCardToTop(pCardId)</td><td class="desc">Moves a card to the top of its current column.</td></tr>
-        <tr><td class="sig">MoveCard(pCardId, pColumnId)</td><td class="desc"><strong>New.</strong> Moves a card to a different column programmatically. Fires <code>OnCardMoved</code> identically to a user drag. No-op if already in the target column.</td></tr>
+        <tr><td class="sig">MoveCard(pCardId, pColumnId)</td><td class="desc"><strong>New.</strong> Moves a card to a different column programmatically. Fires <code>OnCardMoved</code> identically to a user drag. No-op if already in the target column. <strong>New in v1.3:</strong> re-applies the destination column's auto-sort mode (<a href="#api-columns"><code>SetColumnSortMode</code></a>) if one is active.</td></tr>
         <tr><td class="sig">SetCardVisible(pCardId, pVisible)</td><td class="desc"><strong>New.</strong> Shows (<code>1</code>) or hides (<code>0</code>) a card without removing it. Independent of the filter panel — both systems can coexist on the same card.</td></tr>
       </tbody>
     </table>
@@ -549,7 +549,7 @@ MyKanban.AddColumn('todo', 'To Do', COLOR:Red)</code></pre>
         <tr><td class="sig">SetCardAssignee(pCardId, pAssignee)</td><td class="desc">Sets the assignee name shown on the card.</td></tr>
         <tr><td class="sig">SetCardDueDate(pCardId, pDueDate)</td><td class="desc">Sets the due date string (any format, e.g. <code>'2025-12-31'</code>).</td></tr>
         <tr><td class="sig">SetCardProgress(pCardId, pProgress)</td><td class="desc">Sets a progress bar (0–100). Pass <code>-1</code> to hide the bar.</td></tr>
-        <tr><td class="sig">SetCardOverdue(pCardId, pOverdue)</td><td class="desc">Pass <code>1</code> to highlight the card as overdue.</td></tr>
+        <tr><td class="sig">SetCardOverdue(pCardId, pOverdue)</td><td class="desc">Pass <code>1</code> to highlight the card as overdue: shows the OVERDUE badge and renders the body/description text in red. <strong>New in v1.3:</strong> the red body text.</td></tr>
         <tr><td class="sig">SetCardStatusBar(pCardId, pLabel, pColor)</td><td class="desc">Sets a coloured status bar at the bottom of the card. <code>pLabel</code> can be blank.</td></tr>
         <tr><td class="sig">SetCardPriority(pCardId, pPriority)</td><td class="desc"><strong>New in v1.3.</strong> Sets a numeric priority (lower = higher priority). Pass <code>-1</code> to clear it. Drives <code>SetColumnSortMode(pColumnId, 'priority')</code>.</td></tr>
       </tbody>
@@ -1085,7 +1085,7 @@ MyKanban.SetAllColumnTextColors(0FFFFFFH)
 
   <section id="ex-sort">
     <h2>Example — Column Auto-Sort</h2>
-    <p><code>SetColumnSortMode</code> sets the <strong>default/initial</strong> order for a column. It re-applies automatically when a card is added, or when <code>SetCardPriority</code> / <code>SetCardDueDate</code> changes a card already in the column — but the user can always drag-reorder freely afterward; the next trigger re-applies the auto-order.</p>
+    <p><code>SetColumnSortMode</code> sets the <strong>default/initial</strong> order for a column. It re-applies automatically when a card is added, moved into the column via <code>MoveCard</code>, or when <code>SetCardPriority</code> / <code>SetCardDueDate</code> changes a card already in the column — but the user can always drag-reorder freely afterward; the next trigger re-applies the auto-order.</p>
     <pre><code class="language-clarion">! ── OnPageReady ────────────────────────────────────────────────
 MyKanban.AddColumn('todo', 'To Do', 0)
 
@@ -1105,7 +1105,17 @@ MyKanban.SetCardDueDate('t2', '15/08/26')
 MyKanban.SetColumnSortMode('testing', 'date')
 
 ! Turn auto-sort off again (order stays as-is, just no longer auto-reapplied)
-MyKanban.SetColumnSortMode('todo', 'none')</code></pre>
+MyKanban.SetColumnSortMode('todo', 'none')
+
+! Moving a card programmatically re-sorts the destination column too
+MyKanban.SetCardStatus(t1, 'done')      ! e.g. status change drives the move below
+MyKanban.MoveCard('t1', 'done')         ! 'done' has SetColumnSortMode('priority') active
+                                         ! → t1 is inserted at its priority-sorted position,
+                                         !   not just appended at the end</code></pre>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>The Status system does not drive auto-sort.</strong> <code>SetCardStatus</code> / <code>AddStatusOption</code> (colour bar, context-menu radio, filter) is a separate mechanism from the numeric <code>Priority</code> field that <code>SetColumnSortMode('priority')</code> reads. If your app changes a card's priority only through the Status system (e.g. a context-menu selection), the column will not re-sort — call <code>SetCardPriority</code> with the matching numeric value as well.</p>
+    </div>
   </section>
 
   <section id="ex-compact">

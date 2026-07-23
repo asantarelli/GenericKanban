@@ -317,12 +317,22 @@ resources/wwwroot/           → accessory\resources\wwwroot\</code></pre>
         <li>Se agrega una tarjeta nueva a la columna (<code>AddCard</code>).</li>
         <li>Se cambia la prioridad de una tarjeta (<code>SetCardPriority</code>).</li>
         <li>Se cambia la fecha de vencimiento de una tarjeta (<code>SetCardDueDate</code>).</li>
+        <li>Se mueve una tarjeta a la columna programáticamente (<code>MoveCard</code>) — se reordena la columna destino.</li>
         <li>Se llama <code>SetColumnSortMode</code> explícitamente.</li>
       </ul>
       <div class="callout">
         Después de cada auto-orden, el usuario puede seguir arrastrando tarjetas libremente dentro de la columna —
         el drag manual <strong>nunca queda bloqueado</strong>. El próximo evento de la lista de arriba vuelve a
-        aplicar el orden automático.
+        aplicar el orden automático. Nota: el drag manual del usuario (arrastrar con el mouse) tampoco reordena
+        — a propósito, para no pelearse con el reacomodo que el usuario acaba de hacer a mano.
+      </div>
+      <div class="callout warn">
+        <strong>Ojo con el sistema de Estados.</strong> <code>SetCardStatus</code>/<code>AddStatusOption</code>
+        (barra de color + radio del menú + filtro) es un campo <em>separado</em> del <code>Priority</code>
+        numérico que usa el auto-orden. Si tu aplicación cambia la prioridad de una tarjeta solo a través del
+        sistema de Estados (por ejemplo, desde el menú contextual), el auto-orden <strong>no se entera</strong>
+        — hay que llamar también a <code>SetCardPriority</code> con el valor numérico correspondiente para que
+        la columna se reordene.
       </div>
       <pre><code>Kanban.SetCardPriority('c1', 1)      ! menor número = mayor prioridad
 Kanban.SetCardPriority('c2', 3)
@@ -344,7 +354,7 @@ Kanban.SetColumnSortMode('closed', 'none')    ! vuelve a orden libre (sin auto-o
           <tr><td><code>ClearColumnCards(columnId)</code></td><td>Elimina todas las tarjetas de una columna</td></tr>
           <tr><td><code>GetCardColumn(cardId)</code></td><td>Devuelve el ID de columna que contiene la tarjeta</td></tr>
           <tr><td><code>MoveCardToTop(cardId)</code></td><td>Mueve una tarjeta al tope de su columna</td></tr>
-          <tr><td><code>MoveCard(cardId, columnId)</code></td><td>Mueve una tarjeta a otra columna (dispara <code>CardMoved</code>)</td></tr>
+          <tr><td><code>MoveCard(cardId, columnId)</code></td><td>Mueve una tarjeta a otra columna (dispara <code>CardMoved</code>); reordena la columna destino si tiene auto-orden activo</td></tr>
           <tr><td><code>SetCardVisible(cardId, visible)</code></td><td>Muestra (1) u oculta (0) una tarjeta sin eliminarla</td></tr>
           <tr><td><code>SetCardTitle(cardId, title)</code></td><td>Actualiza el título</td></tr>
           <tr><td><code>SetCardBody(cardId, body)</code></td><td>Actualiza el texto del cuerpo</td></tr>
@@ -355,7 +365,7 @@ Kanban.SetColumnSortMode('closed', 'none')    ! vuelve a orden libre (sin auto-o
           <tr><td><code>SetCardAssignee(cardId, assignee)</code></td><td>Responsable asignado</td></tr>
           <tr><td><code>SetCardDueDate(cardId, dueDate)</code></td><td>Fecha de vencimiento (texto)</td></tr>
           <tr><td><code>SetCardProgress(cardId, percent)</code></td><td>Barra de progreso (0–100, -1 para ocultarla)</td></tr>
-          <tr><td><code>SetCardOverdue(cardId, overdue)</code></td><td>Marca (1) o quita (0) el badge de vencida</td></tr>
+          <tr><td><code>SetCardOverdue(cardId, overdue)</code></td><td>Marca (1) o quita (0) el badge de vencida — también pinta la descripción en rojo mientras está marcada</td></tr>
           <tr><td><code>SetCardStatusBar(cardId, label, color)</code></td><td>Barra de estado coloreada en el borde izquierdo</td></tr>
           <tr><td><code>SetCardStatus(cardId, optionId)</code></td><td>Setea estado (barra + filtro + radio) en una sola llamada</td></tr>
           <tr><td><code>SetCardPriority(cardId, priority)</code> <span class="badge">Nuevo</span></td><td>Prioridad numérica (menor = más prioritaria); -1 la limpia</td></tr>

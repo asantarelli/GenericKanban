@@ -69,7 +69,7 @@ Copy the contents of the `Clarion/accessory/` folder to your Clarion accessory f
 | `ClearColumnCards(columnId)` | Removes all cards from a column |
 | `GetCardColumn(cardId)` | Returns the column ID containing the card |
 | `MoveCardToTop(cardId)` | Moves a card to the top of its column |
-| `MoveCard(cardId, columnId)` | Moves a card to a different column (fires `CardMoved`) |
+| `MoveCard(cardId, columnId)` | Moves a card to a different column (fires `CardMoved`); re-applies the destination column's auto-sort mode if one is active |
 | `SetCardVisible(cardId, visible)` | Shows (1) or hides (0) a card without removing it |
 | `SetCardTitle(cardId, title)` | Updates card title |
 | `SetCardBody(cardId, body)` | Updates card body text |
@@ -80,7 +80,7 @@ Copy the contents of the `Clarion/accessory/` folder to your Clarion accessory f
 | `SetCardAssignee(cardId, assignee)` | Sets assignee text on card |
 | `SetCardDueDate(cardId, dueDate)` | Sets due date text on card |
 | `SetCardProgress(cardId, percent)` | Sets progress bar (0–100, -1 to hide) |
-| `SetCardOverdue(cardId, overdue)` | Marks card as overdue (1) or clears (0) |
+| `SetCardOverdue(cardId, overdue)` | Marks card as overdue (1) or clears (0); shows the OVERDUE badge and renders the card body in red |
 | `SetCardStatusBar(cardId, label, color)` | Sets coloured status bar on card left edge |
 | `SetCardStatus(cardId, optionId)` | Sets status (bar colour + filter + radio) in one call |
 | `SetCardPriority(cardId, priority)` | Sets a numeric priority (lower = higher priority); -1 clears it |

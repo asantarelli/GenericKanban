@@ -315,7 +315,10 @@ const kanban = {
         const b = document.createElement('div');
         b.className = 'card-body';
         b.textContent = card.body;
-        if (effTextColor) b.style.color = effTextColor;
+        // Overdue always wins — same red as the OVERDUE badge, regardless of
+        // any custom/auto text color, so the warning can't be missed.
+        if (card.overdue) b.style.color = '#e74c3c';
+        else if (effTextColor) b.style.color = effTextColor;
         content.appendChild(b);
       }
 
@@ -846,6 +849,9 @@ const kanban = {
     card.columnId = columnId;
     this._refreshCount(fromColumn);
     this._refreshCount(columnId);
+    // Programmatic move (e.g. a status change) — unlike a user drag, slot the
+    // card into its auto-sorted position in the destination column if one is active.
+    this._maybeResortColumn(columnId);
     // Fire the same event as a drag so C# raises CardMoved to Clarion
     window.chrome.webview.postMessage(JSON.stringify({
       type: 'CardMoved', cardId, fromColumn, toColumn: columnId

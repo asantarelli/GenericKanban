@@ -234,7 +234,8 @@
           const b = document.createElement("div");
           b.className = "card-body";
           b.textContent = card.body;
-          if (effTextColor) b.style.color = effTextColor;
+          if (card.overdue) b.style.color = "#e74c3c";
+          else if (effTextColor) b.style.color = effTextColor;
           content.appendChild(b);
         }
         if (card.overdue) {
@@ -742,6 +743,7 @@
       card.columnId = columnId;
       this._refreshCount(fromColumn);
       this._refreshCount(columnId);
+      this._maybeResortColumn(columnId);
       window.chrome.webview.postMessage(JSON.stringify({
         type: "CardMoved",
         cardId,
